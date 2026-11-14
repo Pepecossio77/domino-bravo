@@ -226,6 +226,14 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 .menu button{display:flex;justify-content:space-between;align-items:center;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.25);border-radius:12px;padding:12px 16px;font-weight:700;font-size:18px;text-align:left}
 .menu button.primary{background:var(--accent);border-color:var(--accent);color:#1d1a16}
 .menu button:disabled{color:var(--muted);border-color:rgba(255,255,255,.12);cursor:default}
+.acc{display:grid;gap:10px}
+.acc label{display:grid;gap:4px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.acc input{font:inherit;font-size:17px;letter-spacing:0;text-transform:none;color:var(--ink);background:rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.3);border-radius:10px;padding:10px 12px;width:100%}
+.acc input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.acc .gbtn{border:2px solid rgba(255,255,255,.4);background:#fff;color:#1d1a16;border-radius:10px;padding:11px 14px;font-weight:700;font-size:17px}
+.acc .msg{min-height:20px;font-size:14px;color:var(--them)} .acc .msg.ok{color:var(--us)}
+.acc .lnk{background:none;border:0;color:var(--muted);text-decoration:underline;padding:4px 0;text-align:left;font-size:15px}
+.acc .who{font-size:18px;font-weight:700;word-break:break-all}
 .menu em{font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid currentColor;border-radius:99px;padding:1px 7px}
 .shield{display:block;width:30px;height:30px;color:var(--muted)}
 .shield.big{width:54px;height:54px}
@@ -365,6 +373,7 @@ body[data-mesa="micaela"] #scene{background:radial-gradient(110% 95% at 50% 42%,
       <button type="button" data-nav="mesas">Mesas</button>
       <button type="button" data-nav="perfil">Perfil</button>
       <button type="button" data-nav="ayuda">Cómo jugar</button>
+      <button type="button" data-nav="cuenta" id="btnAcc">Cuenta <em id="accEm">Entrar</em></button>
       <button type="button" data-nav="sound" id="btnSnd">Sonido <em id="sndEm">Sí</em></button>
     </nav>
     <div class="wallet">
@@ -1011,7 +1020,7 @@ if (typeof module !== 'undefined') module.exports = E;
   }
   function saveG() { try { localStorage.setItem(MKEY, JSON.stringify(G)); } catch (e) { /* idem */ } }
   function loadG() { try { return JSON.parse(localStorage.getItem(MKEY) || 'null'); } catch (e) { return null; } }
-  function saveP() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { /* idem */ } }
+  function saveP() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { /* idem */ } cloudQueue(); }
 
   var P = loadP();
   evalEmblems(true);
@@ -1575,7 +1584,7 @@ if (typeof module !== 'undefined') module.exports = E;
       return '<button type="button" class="lvl" data-act="level" data-id="' + lv.id + '"' + (locked ? ' disabled' : '') + '><span class="lh"><b>' + lv.name +
         '</b><i>' + lv.coins + ' monedas</i></span>' + (locked ? '<span class="ln">Vence a los 7 bots de los otros niveles para abrirlo. Llevas ' + n + ' de 7.</span>' : '') +
         hint + '<span class="faces">' + faces + '</span></button>';
-    }).join('') + '</div><p class="note">Elegir un nivel empieza una partida nueva.</p>', must);
+    }).join('') + '</div><p class="note">Elegir un nivel empieza una partida nueva.</p><div class="acts"><button type="button" data-act="go-cuenta">Cuenta ' + (FB && FB.user ? '· ' + (FB.user.email || 'lista') : '· guardar en la nube') + '</button></div>', must);
   }
   function showMenu() {
     var mid = !!G && !G.done;
@@ -1588,6 +1597,7 @@ if (typeof module !== 'undefined') module.exports = E;
       '<button type="button" disabled>Torneos <em>Pronto</em></button>' +
       '<button type="button" data-act="go-mesas">Mesas</button>' +
       '<button type="button" data-act="go-perfil">Perfil</button>' +
+      '<button type="button" data-act="go-cuenta">Cuenta <em>' + (FB && FB.user ? 'Listo' : 'Entrar') + '</em></button>' +
       '<button type="button" data-act="go-ayuda">Cómo jugar</button>' +
       '<button type="button" data-act="sound">Sonido: ' + (SND.isOn() ? 'Sí' : 'No') + '</button></div>', !mid);
   }
@@ -1650,7 +1660,7 @@ if (typeof module !== 'undefined') module.exports = E;
       '<h3>Bots vencidos</h3><p>' + beatenCount() + ' de 7. ' + (legendsOpen() ? 'El nivel Leyendas está abierto.' : 'Vence a los 7 para abrir el nivel Leyendas.') + '</p><h3>Emblemas</h3>' + emblemSummary() + '<h3>Rangos de prestigio</h3><ol class="ranks">' + RANGOS.map(function (r) {
         var t = r[1];
         return '<li class="' + (P.prestige >= t[0] ? 'has' : '') + '"><span>' + r[0] + '</span><em>' + (t.length > 3 ? t[0] + ' a ' + t[t.length - 1] : t.join(' · ')) + '</em></li>';
-      }).join('') + '</ol><p class="note">Dentro de un rango subes y bajas. Al llegar a uno nuevo ya no bajas de su nivel I.</p><div class="acts"><button type="button" data-act="reset">' + (resetArm ? 'Toca otra vez para borrar todo' : 'Reiniciar progreso') + '</button></div>');
+      }).join('') + '</ol><p class="note">Dentro de un rango subes y bajas. Al llegar a uno nuevo ya no bajas de su nivel I.</p><div class="acts"><button type="button" data-act="reset">' + (resetArm ? 'Toca otra vez para borrar todo' : 'Reiniciar progreso') + (FB && FB.user ? ' (también en la nube)' : '') + '</button></div>');
   }
   function showAyuda() {
     openModal('<p class="eyebrow">Cómo jugar</p><h2>Domino Bravo: parejas, a 75 puntos</h2><ol class="help">' +
@@ -1743,6 +1753,14 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'sound') { SND.toggle(); showMenu(); }
     else if (a === 'go-mesas') showMesas();
     else if (a === 'go-perfil') showPerfil();
+    else if (a === 'go-cuenta') showCuenta();
+    else if (a === 'acc-google') accGoogle();
+    else if (a === 'acc-login') accEmail(false);
+    else if (a === 'acc-signup') accEmail(true);
+    else if (a === 'acc-forgot') accForgot();
+    else if (a === 'acc-save') accSaveNow();
+    else if (a === 'acc-retry') { FB.p = null; FB.err = null; fbLoad(); showCuenta(); }
+    else if (a === 'acc-out') accOut(b);
     else if (a === 'go-emb') showEmblemas();
     else if (a === 'pick') {
       var id = b.dataset.id, cur = shownIds().slice(), k = cur.indexOf(id);
@@ -1778,8 +1796,156 @@ if (typeof module !== 'undefined') module.exports = E;
     if (locked && G && !G.done) return;
     var n = b.dataset.nav;
     if (n === 'mesas') showMesas(); else if (n === 'perfil') showPerfil(); else if (n === 'ayuda') showAyuda();
+    else if (n === 'cuenta') showCuenta();
     else showLevels();
   });
+
+  /* ---------- Cuenta y guardado en la nube (Firebase, plan gratis) ----------
+     Se puede jugar sin cuenta. Con cuenta, el progreso (P) se guarda en Firestore, un documento por persona: users/{uid}.
+     Al entrar: si la nube tiene más partidas jugadas, se usa la de la nube; si este aparato tiene más, se sube; si empatan, no se toca nada.
+     Antes del primer cruce no se sube nada (FB.ready), para no pisar un progreso más nuevo de la nube. */
+  var FBCFG = { apiKey: 'AIzaSyAqtGkiCYJf4bkE6FTeYA1GAJnhqHS9UJk', authDomain: 'domino-bravo.firebaseapp.com', projectId: 'domino-bravo',
+    storageBucket: 'domino-bravo.firebasestorage.app', messagingSenderId: '133195180718', appId: '1:133195180718:web:56f20e4f7dceff39665b3f' };
+  var FBV = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  var FB = { p: null, m: null, auth: null, db: null, user: null, ready: false, err: null, state: '', last: 0 };
+  var UIDK = 'domino-bravo-uid', cqT = null;
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* idem */ } }
+  function fbLoad() {
+    if (FB.p) return FB.p;
+    FB.p = (async function () {
+      try {
+        var a = await import(FBV + 'firebase-app.js'), au = await import(FBV + 'firebase-auth.js'), fs = await import(FBV + 'firebase-firestore.js');
+        var app = a.initializeApp(FBCFG);
+        FB.m = { au: au, fs: fs }; FB.auth = au.getAuth(app); FB.db = fs.getFirestore(app);
+        au.onAuthStateChanged(FB.auth, function (u) {
+          FB.user = u || null; FB.ready = false; accRefresh();
+          if (u) cloudSync(u); else FB.state = '';
+        });
+      } catch (e) { FB.err = 'No pude conectar con el servicio de cuentas. Revisa tu conexión.'; FB.p = null; accRefresh(); }
+    })();
+    return FB.p;
+  }
+  function accRefresh() {
+    var em = $('#accEm'); if (em) em.textContent = FB.user ? 'Listo' : 'Entrar';
+    if ($('#modalCard .acc') && !$('#modal').hidden) showCuenta();
+  }
+  function accErr(e) {
+    var c = (e && e.code) || '';
+    var t = {
+      'auth/invalid-credential': 'Correo o contraseña incorrectos.', 'auth/wrong-password': 'Correo o contraseña incorrectos.', 'auth/user-not-found': 'Correo o contraseña incorrectos.',
+      'auth/email-already-in-use': 'Ese correo ya tiene cuenta. Toca Entrar.', 'auth/weak-password': 'La contraseña necesita al menos 6 caracteres.',
+      'auth/invalid-email': 'Ese correo no parece válido.', 'auth/missing-password': 'Escribe tu contraseña.', 'auth/network-request-failed': 'No hay conexión. Intenta de nuevo.',
+      'auth/too-many-requests': 'Demasiados intentos. Espera un rato y vuelve a probar.', 'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permítela e intenta de nuevo.',
+      'auth/unauthorized-domain': 'Esta dirección todavía no está autorizada en Firebase (Dominios autorizados).', 'auth/operation-not-allowed': 'Este método de entrada no está activado en Firebase.'
+    };
+    if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '';
+    return t[c] || ('No se pudo completar (' + (c || 'error') + ').');
+  }
+  function accMsg(t, ok) { var m = $('#accMsg'); if (m) { m.textContent = t || ''; m.className = 'msg' + (ok ? ' ok' : ''); } }
+  async function accGoogle() {
+    try { accMsg('Abriendo Google…', true); await FB.m.au.signInWithPopup(FB.auth, new FB.m.au.GoogleAuthProvider()); }
+    catch (e) { accMsg(accErr(e)); }
+  }
+  async function accEmail(create) {
+    var mail = ($('#accMail') || {}).value || '', pass = ($('#accPass') || {}).value || '';
+    mail = mail.trim();
+    if (!mail || !pass) { accMsg('Escribe tu correo y tu contraseña.'); return; }
+    try {
+      accMsg(create ? 'Creando tu cuenta…' : 'Entrando…', true);
+      if (create) await FB.m.au.createUserWithEmailAndPassword(FB.auth, mail, pass);
+      else await FB.m.au.signInWithEmailAndPassword(FB.auth, mail, pass);
+    } catch (e) { accMsg(accErr(e)); }
+  }
+  async function accForgot() {
+    var mail = (($('#accMail') || {}).value || '').trim();
+    if (!mail) { accMsg('Escribe tu correo arriba y toca de nuevo.'); return; }
+    try { await FB.m.au.sendPasswordResetEmail(FB.auth, mail); accMsg('Listo: te mandé un correo para cambiar la contraseña. Mira también el spam.', true); }
+    catch (e) { accMsg(accErr(e)); }
+  }
+  async function cloudPush() {
+    if (!FB.user || !FB.ready) return false;
+    clearTimeout(cqT); cqT = null;
+    try {
+      var f = FB.m.fs;
+      await f.setDoc(f.doc(FB.db, 'users', FB.user.uid), { data: JSON.stringify(P), games: (P.wins || 0) + (P.losses || 0), updatedAt: f.serverTimestamp() });
+      FB.last = Date.now(); FB.state = 'Guardado en la nube'; return true;
+    } catch (e) { FB.state = 'No se pudo guardar en la nube (se reintenta con el próximo cambio)'; return false; }
+  }
+  function cloudQueue() {
+    if (!FB || !FB.ready || !FB.user) return;
+    clearTimeout(cqT); cqT = setTimeout(cloudPush, 15000);
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden && cqT) cloudPush(); });
+  function adopt(cp, uid) {
+    lsSet(KEY, JSON.stringify(cp)); lsSet(UIDK, uid);
+    try { sessionStorage.setItem('domino-bravo-adopted', '1'); } catch (e) { /* idem */ }
+    clearTimeout(cqT); cqT = null; FB.ready = false;
+    location.reload();
+  }
+  async function cloudSync(user) {
+    FB.state = 'Sincronizando…';
+    try {
+      var f = FB.m.fs, snap = await f.getDoc(f.doc(FB.db, 'users', user.uid));
+      var stored = lsGet(UIDK), ownerOK = !stored || stored === user.uid, localG = (P.wins || 0) + (P.losses || 0);
+      if (!snap.exists()) {
+        if (!ownerOK) { try { localStorage.removeItem(KEY); localStorage.removeItem(MKEY); } catch (e) { /* idem */ } lsSet(UIDK, user.uid); location.reload(); return; }
+        lsSet(UIDK, user.uid); FB.ready = true;
+        if (await cloudPush()) toast('Tu progreso quedó guardado en la nube.', 'good');
+      } else {
+        var cp = JSON.parse(snap.data().data), cg = (cp.wins || 0) + (cp.losses || 0);
+        if (!ownerOK || cg > localG) { adopt(cp, user.uid); return; }
+        lsSet(UIDK, user.uid); FB.ready = true;
+        if (localG > cg) { if (await cloudPush()) toast('Tu progreso de este aparato se guardó en la nube.', 'good'); }
+        else FB.state = 'Guardado en la nube';
+      }
+    } catch (e) { FB.state = 'No pude hablar con la nube (revisa tu conexión)'; FB.ready = false; }
+    accRefresh();
+  }
+  async function accSaveNow() {
+    var ok = await cloudPush();
+    toast(ok ? 'Progreso guardado en la nube.' : 'No se pudo guardar. Revisa tu conexión.', ok ? 'good' : 'bad');
+    showCuenta();
+  }
+  var outArm = false;
+  async function accOut(b) {
+    if (!outArm) { outArm = true; b.textContent = 'Toca otra vez para salir'; return; }
+    outArm = false;
+    var ok = await cloudPush();
+    if (!ok) { toast('No pude guardar en la nube, así que no salgo para no perder tu progreso.', 'bad'); showCuenta(); return; }
+    try { await FB.m.au.signOut(FB.auth); } catch (e) { /* idem */ }
+    try { localStorage.removeItem(KEY); localStorage.removeItem(MKEY); localStorage.removeItem(UIDK); } catch (e) { /* idem */ }
+    location.reload();
+  }
+  function showCuenta() {
+    var h = '<p class="eyebrow">Cuenta</p><h2>' + (FB.user ? 'Tu cuenta' : 'Guarda tu progreso') + '</h2><div class="acc">';
+    if (FB.err) {
+      h += '<p>' + FB.err + '</p><div class="acts"><button type="button" data-act="acc-retry">Intentar de nuevo</button></div>';
+    } else if (!FB.m) {
+      h += '<p>Conectando…</p>'; fbLoad().then(function () { if ($('#modalCard .acc') && !$('#modal').hidden) showCuenta(); });
+    } else if (FB.user) {
+      h += '<div class="who">' + (FB.user.email || FB.user.displayName || 'Cuenta') + '</div><p>' + (FB.state || '') + '</p>' +
+        '<p class="note">Tu progreso (monedas, prestigio, rating, bots vencidos y emblemas) se guarda solo. Si entras desde otro celular o computador, verás lo mismo. Si dos aparatos tienen progreso distinto, se usa el que lleve más partidas jugadas.</p>' +
+        '<div class="acts"><button type="button" data-act="acc-save">Guardar ahora</button><button type="button" data-act="acc-out">Salir</button></div>';
+    } else {
+      h += '<p>Puedes jugar sin cuenta. Con cuenta, tu progreso queda en la nube y lo recuperas en cualquier celular o computador.</p>' +
+        '<button type="button" class="gbtn" data-act="acc-google">Entrar con Google</button>' +
+        '<label>Correo<input id="accMail" type="email" autocomplete="email" inputmode="email" autocapitalize="off"></label>' +
+        '<label>Contraseña<input id="accPass" type="password" autocomplete="current-password"></label>' +
+        '<div class="msg" id="accMsg" role="status"></div>' +
+        '<div class="acts"><button type="button" class="primary" data-act="acc-login">Entrar</button><button type="button" data-act="acc-signup">Crear cuenta</button></div>' +
+        '<button type="button" class="lnk" data-act="acc-forgot">Olvidé mi contraseña</button>';
+    }
+    h += '</div>';
+    var keep = $('#accMail') ? [$('#accMail').value, ($('#accPass') || {}).value] : null;
+    openModal(h, false);
+    if (keep && $('#accMail')) { $('#accMail').value = keep[0] || ''; if ($('#accPass')) $('#accPass').value = keep[1] || ''; }
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target && e.target.id === 'accPass') accEmail(false);
+  });
+  try { if (sessionStorage.getItem('domino-bravo-adopted')) { sessionStorage.removeItem('domino-bravo-adopted'); setTimeout(function () { toast('Se cargó tu progreso desde la nube.', 'good'); }, 600); } } catch (e) { /* idem */ }
+  setTimeout(fbLoad, 1200);
   function openIfFree(fn) { if ($('#modal').hidden) fn(); }
   $('#btnMenu').addEventListener('click', function () { openIfFree(showMenu); });
   $('#badges').addEventListener('click', function () { openIfFree(showEmblemas); });
