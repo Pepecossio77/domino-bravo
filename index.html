@@ -2217,8 +2217,22 @@ if (typeof module !== 'undefined') module.exports = E;
         later(function () { var t = ctx.currentTime; tone(2300, 0.45, 0.025, 'sine', t); tone(2300, 0.45, 0.025, 'sine', t + 0.22); }, 40000, 90000); /* timbre de bicicleta */
       },
       bar: function () {
-        lfo(nz('bandpass', 480, 0.9, 0.04).gain, 0.31, 0.02); lfo(nz('bandpass', 900, 1, 0.025).gain, 0.17, 0.012);
-        later(function () { var t = ctx.currentTime; tone(3400, 0.35, 0.03, 'sine', t); tone(4100, 0.3, 0.02, 'sine', t + 0.03); }, 4000, 11000);
+        /* Sin murmullo continuo: un zumbido de local muy bajito y sonidos sueltos con pausas (voces, brindis, risa, botella) */
+        lfo(nz('lowpass', 220, 0.7, 0.009).gain, 0.09, 0.004);
+        later(function () { /* conversación lejana: un rato de voces que sube y baja, y se calla */
+          var t = ctx.currentTime, d = 2 + rr() * 2.5, s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+          var f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 520 + rr() * 380; f.Q.value = 1.1;
+          var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.02, t + 0.7); g.gain.setValueAtTime(0.02, t + d); g.gain.linearRampToValueAtTime(0.0001, t + d + 1.1);
+          var o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = 3 + rr() * 2.5; og.gain.value = 0.012; o.connect(og); og.connect(g.gain);
+          s.connect(f); f.connect(g); g.connect(bus); s.start(t, rr() * 1.5); o.start(t); s.stop(t + d + 1.3); o.stop(t + d + 1.3);
+        }, 6000, 15000);
+        later(function () { var t = ctx.currentTime; tone(3400, 0.35, 0.026, 'sine', t); tone(4100, 0.3, 0.017, 'sine', t + 0.03); }, 9000, 24000); /* brindis */
+        later(function () { /* una risa corta */
+          var t = ctx.currentTime, n = 3 + ((rr() * 3) | 0), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1100; lp.connect(bus);
+          var f0 = 300 + rr() * 90;
+          for (var k = 0; k < n; k++) tone(f0 - k * 10, 0.13, 0.03, 'sawtooth', t + k * 0.17, lp, f0 - k * 10 - 40);
+        }, 25000, 60000);
+        later(function () { var t = ctx.currentTime; puff(0.1, 'lowpass', 320, 0.8, 0.07, t); tone(150, 0.1, 0.03, 'sine', t, bus, 95); }, 18000, 40000); /* botella sobre la barra */
       },
       asado: function () {
         /* Brasas suaves: un rumor muy grave y bajito, y chasquidos sueltos con pausas (sin silbido agudo continuo) */
