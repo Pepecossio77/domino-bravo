@@ -191,6 +191,22 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 .mesa small{display:block;margin-top:2px}
 .lgd{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .note{color:var(--muted);font-size:14px}
+.flag.mpclk{background:#f3ecdc;min-width:38px;text-align:center}
+.flag.mpclk.low{background:var(--them);color:#fff}
+.lobby{display:grid;gap:12px}
+.lobby .code{font-size:40px;font-weight:800;letter-spacing:.18em;text-align:center;line-height:1.1;user-select:all}
+.lobby .row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06)}
+.lobby .row svg{width:40px;height:40px;border-radius:50%;flex:none}
+.lobby .row b{flex:1;min-width:0;overflow-wrap:anywhere}
+.lobby .row small{color:var(--muted);display:block;font-weight:500}
+.lobby .row.free{color:var(--muted);font-style:italic;justify-content:center}
+.lobby .row button{font-size:13px;font-weight:700;border:2px solid rgba(255,255,255,.3);border-radius:99px;padding:5px 10px;background:none}
+.lobby .row button.on{background:var(--accent);border-color:var(--accent);color:#1d1a16}
+.lobby h3{margin:4px 0 -4px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{border:2px solid rgba(255,255,255,.3);border-radius:10px;padding:8px 12px;font-weight:700;background:rgba(0,0,0,.25)}
+.opts button.on{background:var(--accent);border-color:var(--accent);color:#1d1a16}
+.opts button:disabled{opacity:.7}
 .pf{display:flex;align-items:center;gap:12px}
 .pf .av{width:56px;height:56px;flex:none;border-radius:50%;overflow:hidden;display:block}
 .pf .av.big{width:84px;height:84px}
@@ -393,7 +409,7 @@ body[data-mesa="micaela"] #scene{background:radial-gradient(110% 95% at 50% 42%,
     <nav aria-label="Menú">
       <button type="button" class="on" data-nav="play">Jugar con bots</button>
       <button type="button" disabled>En línea <em>Pronto</em></button>
-      <button type="button" disabled>Con amigos <em>Pronto</em></button>
+      <button type="button" data-nav="amigos">Con amigos <em>Nuevo</em></button>
       <button type="button" disabled>Torneos <em>Pronto</em></button>
       <button type="button" data-nav="mesas">Mesas</button>
       <button type="button" data-nav="perfil">Perfil</button>
@@ -1087,7 +1103,7 @@ if (typeof module !== 'undefined') module.exports = E;
     } catch (e) { /* sin almacenamiento: se juega igual */ }
     return defP();
   }
-  function saveG() { try { localStorage.setItem(MKEY, JSON.stringify(G)); } catch (e) { /* idem */ } }
+  function saveG() { if (G && G.mp) return; try { localStorage.setItem(MKEY, JSON.stringify(G)); } catch (e) { /* idem */ } }
   function loadG() { try { return JSON.parse(localStorage.getItem(MKEY) || 'null'); } catch (e) { return null; } }
   function saveP() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) { /* idem */ } cloudQueue(); }
 
@@ -1127,8 +1143,14 @@ if (typeof module !== 'undefined') module.exports = E;
     for (var i = 0; i < RANKS.length; i++) if (RANKS[i][0] > pr) return RANKS[i];
     return null;
   }
-  function getPr(p) { return p === 0 ? P.prestige : P.bots[G.seats[p]]; }
+  function getPr(p) {
+    if (p === 0) return P.prestige;
+    var b = BOTS[G.seats[p]];
+    if (b && b.human) return (MP && MP.players[b.uid] && MP.players[b.uid].pr) || 0;
+    return P.bots[G.seats[p]];
+  }
   function addPr(p, d) {
+    if (G.mp) return; /* con amigos las partidas son amistosas: no cambia el prestigio */
     var cur = getPr(p), v = Math.min(PMAX, Math.max(rankFloor(cur), cur + d));
     if (p === 0) { P.prestige = v; checkLap(); } else P.bots[G.seats[p]] = v;
   }
@@ -1221,7 +1243,7 @@ if (typeof module !== 'undefined') module.exports = E;
         '<i><u style="width:' + Math.min(100, Math.round(v / META * 100)) + '%"></u></i></div>';
     }
     $('#score').innerHTML = cell('us', 'Nosotros', s[0]) +
-      '<div class="mid"><b>Mano ' + G.handNo + '</b><span>' + lvOf(G.level).name + ' · a ' + META + '</span></div>' +
+      '<div class="mid"><b>Mano ' + G.handNo + '</b><span>' + (G.mp ? 'Con amigos' : lvOf(G.level).name) + ' · a ' + META + '</span></div>' +
       cell('them', 'Ellos', s[1]);
     $('#coins').textContent = P.coins;
     $('#prest').textContent = P.prestige;
@@ -1248,6 +1270,7 @@ if (typeof module !== 'undefined') module.exports = E;
         '<div class="backs' + (up ? ' up' : '') + '" aria-label="' + n + ' fichas">' + backs + '</div>' +
         (isCalled(p) ? '<span class="flag">Pase cantado</span>' : '') +
         (betOf(p) ? '<span class="flag">Canta ' + betOf(p) + '</span>' : '') +
+        (G.mp ? mpFlags(p) : '') +
         (bubbles[p] ? '<div class="bubble">' + bubbles[p] + '</div>' : '');
     });
   }
@@ -1264,6 +1287,7 @@ if (typeof module !== 'undefined') module.exports = E;
       '<div class="who"><b>' + myName() + (P.laps > 0 ? '<span class="emb" title="Emblema ' + EMBL[P.laps - 1][0] + '">' + bullSVG(P.laps) + '</span>' : '') + '</b><small>' + rankOf(P.prestige) + ' · ' + P.prestige + '</small></div>' +
       (isCalled(0) ? '<span class="flag">Te cantaron pase</span>' : '') +
       (betOf(0) ? '<span class="flag">Cantaste ' + betOf(0) + '</span>' : '') +
+      (G.mp ? mpFlags(0) : '') +
       (waitArm || (H.waits || []).some(function (w) { return w.caller === 0; }) ? '<span class="flag">Esperas a ' + nm(3) + '</span>' : '');
     $('#hand').innerHTML = H.hands[0].map(function (t, i) {
       return '<button type="button" class="htile ' + (ok[i] ? 'ok' : (mine ? 'dim' : '')) + (sel === i ? ' sel' : '') +
@@ -1375,6 +1399,7 @@ if (typeof module !== 'undefined') module.exports = E;
         if (e.caller === 0) toast('No te quedó otra ficha de ese número: el canto no cuenta.');
         return;
       }
+      if (G.mp) { mpEvent(e); return; }
       if (e.type === 'wait') {
         addPr(e.caller, e.hit ? 3 : -1);
         if (e.caller === 0) {
@@ -1415,6 +1440,7 @@ if (typeof module !== 'undefined') module.exports = E;
       }
       toast(msg, kind);
     });
+    if (G.mp) return;
     evalEmblems();
     if (ev.length) saveP();
   }
@@ -1461,6 +1487,7 @@ if (typeof module !== 'undefined') module.exports = E;
     saveG();
     if (H.over) { timer = setTimeout(endHand, 1900); return; }
     var p = H.turn;
+    if (G.mp && mpTurn(p)) return;
     if (p === 0) {
       var m = E.legalMoves(H, 0);
       if (!m.length) { say(lastMsg + 'No tienes ficha para el ' + H.ends[0] + ' ni el ' + H.ends[1] + ': pasas.'); timer = setTimeout(humanPass, 1900); }
@@ -1475,6 +1502,7 @@ if (typeof module !== 'undefined') module.exports = E;
   }
   var comboSt = 0;
   function botTurn(p) {
+    if (G.mp) { mpBot(p); return; }
     var H = G.H, bb = BOTS[G.seats[p]], m = E.botMove(H, p, null, bb.level, bb.style), ev;
     if (!m) {
       ev = E.passTurn(H, p); bubble(p, 'Paso'); lastMsg = nm(p) + ' pasó. ';
@@ -1500,6 +1528,7 @@ if (typeof module !== 'undefined') module.exports = E;
   }
   function humanPlay(i, side) {
     var H = G.H;
+    if (G.mp) { mpPlay(i, side); return; }
     var ev = E.playTile(H, 0, i, side, callTarget, waitArm);
     comboSt = 1;
     G.lastKey = keyOf(side); G.lastBy = 0; lastMsg = '';
@@ -1511,6 +1540,7 @@ if (typeof module !== 'undefined') module.exports = E;
   function humanPass() {
     var H = G.H;
     if (H.over || H.turn !== 0 || E.canPlay(H, 0)) return;
+    if (G.mp) { if (!MP.pending && !MP.auto) mpSend({ t: 'pass', s: MP.k }); return; }
     var ev = E.passTurn(H, 0);
     comboSt = 0;
     callTarget = null; callMode = false; waitArm = false; sel = null; lastMsg = 'Pasaste. ';
@@ -1536,7 +1566,8 @@ if (typeof module !== 'undefined') module.exports = E;
     evalEmblems(); saveP();
   }
   function newMatch(level) {
-    level = level || (G && G.level) || 'facil';
+    if (MP) mpLeave(true);
+    level = level || (G && !G.mp && G.level) || 'facil';
     var lv = lvOf(level);
     var pool = lv.bots.filter(botOpen).map(function (id) { return { id: id, k: (P.beaten[id] ? 1 : 0) + Math.random() * 0.9 }; })
       .sort(function (a, b) { return a.k - b.k; }).map(function (x) { return x.id; });
@@ -1560,9 +1591,11 @@ if (typeof module !== 'undefined') module.exports = E;
     applyEvents(bev);
     G.scores[r.team] += r.points;
     var won = r.team === 0, why;
-    if (won) { P.hs++; P.hbest = Math.max(P.hbest, P.hs); } else P.hs = 0;
-    if (won && H.over.type === 'tranque' && r.points >= 40) { P.tr40++; toast('Cerrojo: tranque ganado con ' + r.points + ' puntos.', 'good'); }
-    evalEmblems(); saveP();
+    if (!G.mp) {
+      if (won) { P.hs++; P.hbest = Math.max(P.hbest, P.hs); } else P.hs = 0;
+      if (won && H.over.type === 'tranque' && r.points >= 40) { P.tr40++; toast('Cerrojo: tranque ganado con ' + r.points + ' puntos.', 'good'); }
+      evalEmblems(); saveP();
+    }
     if (H.over.type === 'domino') why = H.over.winner === 0 ? 'Dominaste: te quedaste sin fichas.' : nm(H.over.winner) + ' dominó.';
     else {
       why = 'Tranque de ' + (H.over.blocker === 0 ? 'tu parte' : nm(H.over.blocker)) + '. Nosotros nos quedamos con ' +
@@ -1575,10 +1608,10 @@ if (typeof module !== 'undefined') module.exports = E;
     }).join('');
     var betHtml = bev.length ? '<ul class="bets">' + bev.map(function (e) {
       var who = e.caller === 0 ? 'Cantaste' : nm(e.caller) + ' cantó';
-      return '<li class="' + (e.hit ? 'ok' : 'no') + '">' + who + ' ' + e.kind + (e.hit ? ' y se dio: +2 de prestigio.' : e.waived ? ' y no se dio, pero ganaron la partida: no se resta prestigio.' : ' y no se dio: −2 de prestigio.') + '</li>';
+      return '<li class="' + (e.hit ? 'ok' : 'no') + '">' + who + ' ' + e.kind + (G.mp ? (e.hit ? ' y se dio.' : ' y no se dio.') : e.hit ? ' y se dio: +2 de prestigio.' : e.waived ? ' y no se dio, pero ganaron la partida: no se resta prestigio.' : ' y no se dio: −2 de prestigio.') + '</li>';
     }).join('') + '</ul>' : '';
     var lapBlock = '';
-    if (P.lapDone && !P.offered) {
+    if (!G.mp && P.lapDone && !P.offered) {
       P.offered = true; saveP();
       lapBlock = '<div id="lapSlot"><!--lap-->' + lapHtml(canReset() ? 'offer' : 'final') + '<!--/lap--></div>';
     }
@@ -1587,10 +1620,20 @@ if (typeof module !== 'undefined') module.exports = E;
       '<p class="gain ' + (won ? 'us' : 'them') + '">+' + r.points + ' puntos para ' + (won ? 'nosotros' : 'ellos') + '</p>' +
       '<p class="tot">Nosotros <b>' + G.scores[0] + '</b> · Ellos <b>' + G.scores[1] + '</b></p>';
     renderScore(); saveG();
-    if (G.scores[0] >= META || G.scores[1] >= META) html += matchEnd();
+    if (G.mp) html += mpHandEnd(won);
+    else if (G.scores[0] >= META || G.scores[1] >= META) html += matchEnd();
     else html += '<div class="acts"><button type="button" data-act="peek">Ver mesa</button><button type="button" class="primary" data-act="next">Siguiente mano</button></div>';
     resultMemo = { html: html, locked: true };
     openModal(html, true);
+  }
+  /* Premio diario: se da una vez al día, al terminar la primera partida (contra bots o con amigos). Devuelve la línea para mostrar, o ''. */
+  function dailyLine() {
+    var today = String(dayNo(new Date()));
+    if (P.bonusDay === today) return '';
+    if (P.lastDay !== today) touchDay();
+    var bon = dailyBonus(P.dayStreak), nxt = dailyBonus(P.dayStreak + 1);
+    P.bonusDay = today; P.coins += bon;
+    return 'Premio diario: ' + bon + ' monedas' + (P.dayStreak > 1 ? ' (' + P.dayStreak + ' días seguidos)' : '') + '. ' + (nxt > bon ? 'Vuelve mañana y serán ' + nxt + '.' : 'Vuelve mañana por otras ' + nxt + '.');
   }
   function matchEnd() {
     var won = G.scores[0] >= META;
@@ -1615,13 +1658,7 @@ if (typeof module !== 'undefined') module.exports = E;
       P.losses++; P.streak = 0; P.coins += 10;
       lines.push('10 monedas por terminar la partida.');
     }
-    var today = String(dayNo(new Date()));
-    if (P.bonusDay !== today) {
-      if (P.lastDay !== today) touchDay();
-      var bon = dailyBonus(P.dayStreak), nxt = dailyBonus(P.dayStreak + 1);
-      P.bonusDay = today; P.coins += bon;
-      lines.push('Premio diario: ' + bon + ' monedas' + (P.dayStreak > 1 ? ' (' + P.dayStreak + ' días seguidos)' : '') + '. ' + (nxt > bon ? 'Vuelve mañana y serán ' + nxt + '.' : 'Vuelve mañana por otras ' + nxt + '.'));
-    }
+    var dl = dailyLine(); if (dl) lines.push(dl);
     var d = DELTA[lv.id] || [5, -15], oldR = P.rating, oldL = plOf(oldR)[1];
     P.rating = Math.max(0, oldR + (won ? d[0] : d[1]));
     var df = P.rating - oldR, newL = plOf(P.rating)[1];
@@ -1666,9 +1703,9 @@ if (typeof module !== 'undefined') module.exports = E;
     openModal('<p class="eyebrow">Menú</p><h2>' + (mid ? 'Partida en curso' : '¿Qué quieres jugar?') + '</h2><div class="menu">' +
       (mid ? '<button type="button" class="primary" data-act="close">Seguir jugando</button>' :
         '<button type="button" class="primary" data-act="levels">Jugar con bots</button>') +
-      (mid ? '<button type="button" data-act="levels">Cambiar de rivales</button>' : '') +
+      (mid && G.mp ? '<button type="button" data-act="mp-leave">Salir de la mesa de amigos</button>' : mid ? '<button type="button" data-act="levels">Cambiar de rivales</button>' : '') +
       '<button type="button" disabled>En línea <em>Pronto</em></button>' +
-      '<button type="button" disabled>Con amigos <em>Pronto</em></button>' +
+      '<button type="button" data-act="go-amigos">Con amigos <em>' + (MP ? 'Mesa ' + MP.code : 'Nuevo') + '</em></button>' +
       '<button type="button" disabled>Torneos <em>Pronto</em></button>' +
       '<button type="button" data-act="go-mesas">Mesas</button>' +
       '<button type="button" data-act="go-perfil">Perfil</button>' +
@@ -1760,6 +1797,8 @@ if (typeof module !== 'undefined') module.exports = E;
       P.alias = c.v; P.av = { skin: D.skin, look: D.look, shirt: D.shirt };
       D = null; saveP(); $('#coins').textContent = P.coins; if (G) renderAll();
       toast(need ? 'Estilo "' + li[1] + '" comprado. Perfil guardado.' : 'Perfil guardado.', 'good');
+      if (MP) mpTell();
+      if (mpWant && P.alias) { showAmigos(); return; }
       showPerfil(); return;
     }
     showEditar();
@@ -1900,6 +1939,8 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'go-ayuda') showAyuda();
     else if (a === 'next') startHand(false);
     else if (a === 'new') newMatch();
+    else if (a === 'go-amigos') showAmigos();
+    else if (a.indexOf('mp-') === 0) mpAct(a, b);
     else if (a === 'levels') showLevels();
     else if (a === 'level') newMatch(b.dataset.id);
     else if (a === 'mesa') { P.mesa = b.dataset.id; applyMesa(P.mesa); saveP(); showMesas(); }
@@ -1929,6 +1970,7 @@ if (typeof module !== 'undefined') module.exports = E;
     var n = b.dataset.nav;
     if (n === 'mesas') showMesas(); else if (n === 'perfil') showPerfil(); else if (n === 'ayuda') showAyuda();
     else if (n === 'cuenta') showCuenta();
+    else if (n === 'amigos') showAmigos();
     else showLevels();
   });
 
@@ -2002,10 +2044,12 @@ if (typeof module !== 'undefined') module.exports = E;
       try {
         var a = await import(FBV + 'firebase-app.js'), au = await import(FBV + 'firebase-auth.js'), fs = await import(FBV + 'firebase-firestore.js');
         var app = a.initializeApp(FBCFG);
+        FB.app = app;
         FB.m = { au: au, fs: fs }; FB.auth = au.getAuth(app); FB.db = fs.getFirestore(app);
         au.onAuthStateChanged(FB.auth, function (u) {
           FB.user = u || null; FB.ready = false; accRefresh();
           if (u) cloudSync(u); else FB.state = '';
+          mpAuto();
         });
       } catch (e) { FB.err = 'No pude conectar con el servicio de cuentas. Revisa tu conexión.'; FB.p = null; accRefresh(); }
     })();
@@ -2568,6 +2612,488 @@ if (typeof module !== 'undefined') module.exports = E;
   })();
 
   /* ---------- Arranque ---------- */
+  /* ---------- Con amigos: mesa privada por código o link (16 de noviembre) ----------
+     Cómo funciona, en simple:
+     - El anfitrión crea una mesa (código de 5 letras) en la base de datos en tiempo real de Firebase: rooms/{código}.
+       Ahí viven: meta (anfitrión, reloj, asientos, número de partida), players/{uid} (alias, avatar, si está conectado)
+       y log/{partida}/{n}: la lista ordenada de todo lo que pasa (repartos y jugadas).
+     - Nadie manda "el estado de la mesa". Cada aparato lee la misma lista de jugadas y la aplica con el mismo motor (E),
+       así todos ven lo mismo. El reparto se hace con una semilla: con la misma semilla, todos barajan igual.
+     - Cada jugador se ve a sí mismo abajo (asiento 0). loc() pasa del asiento de la mesa al de mi pantalla y can() al revés.
+     - El aparato del anfitrión reparte y mueve a los bots; también juega por quien se desconecta o deja pasar el reloj.
+     - Dos aparatos no pueden escribir la misma jugada n: se escribe con una transacción que solo entra si n está libre.
+     - Si alguien recarga la página, vuelve a leer la lista desde el principio y se pone al día sin animaciones.
+     - Partidas amistosas: no cambian monedas, rating ni prestigio. Solo cuentan para el premio diario.
+     Límite conocido: como no hay servidor propio, cada aparato conoce el reparto completo (no se muestra, pero está en memoria).
+     Entre amigos es aceptable; para el online abierto hará falta un servidor que reparta. */
+  var RTURL = 'https://domino-bravo-default-rtdb.firebaseio.com';
+  var MESAK = 'domino-bravo-mesa', WANTK = 'domino-bravo-quiero';
+  var MPABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  var MP = null, mpWant = null, mpBusy = false;
+  function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function ssSet(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { /* idem */ } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* idem */ } }
+  function mpRng(seed) {
+    var a = seed >>> 0;
+    return function () { a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  function loc(c) { return (c - MP.k + 4) % 4; }
+  function can(l) { return (l + MP.k) % 4; }
+  function cleanCode(t) { return String(t || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); }
+  async function rtLoad() {
+    await fbLoad();
+    if (!FB.app || !FB.user) throw new Error('sin-cuenta');
+    if (!FB.m.db) { FB.m.db = await import(FBV + 'firebase-database.js'); FB.rt = FB.m.db.getDatabase(FB.app, RTURL); }
+    return FB.m.db;
+  }
+  function rref(path) { return FB.m.db.ref(FB.rt, 'rooms/' + MP.code + (path ? '/' + path : '')); }
+  function mpMe() { return { alias: P.alias || 'Jugador', av: P.av, pr: P.prestige, on: true, bot: !!(MP && MP.auto), left: false, t: (MP && MP.t) || Date.now() }; }
+  function mpTell() { if (MP && FB.m.db) FB.m.db.update(rref('players/' + FB.user.uid), mpMe()).catch(function () {}); }
+  function mpMsg(t, ok) { var m = $('#mpMsg'); if (m) { m.textContent = t || ''; m.className = 'msg' + (ok ? ' ok' : ''); } }
+
+  /* Entrada: pide cuenta y alias; luego crear mesa o unirse con código. */
+  function showAmigos(msg) {
+    if (MP && MP.meta) { if (MP.meta.status === 'lobby') showLobby(); else if (G && G.mp) closeModal(); return; }
+    var head = '<p class="eyebrow">Con amigos</p>';
+    if (!FB.user) {
+      openModal(head + '<h2>Primero entra a tu cuenta</h2><p>Para jugar con amigos cada quien necesita su cuenta. Es gratis y así la mesa sabe quién es quién.</p>' +
+        (mpWant ? '<p class="note">Te invitaron a la mesa ' + esc(mpWant) + '. Entra a tu cuenta y te llevo a ella.</p>' : '') +
+        '<div class="acts"><button type="button" data-act="menu">Volver</button><button type="button" class="primary" data-act="go-cuenta">Entrar o crear cuenta</button></div>', false);
+      return;
+    }
+    if (!P.alias) {
+      openModal(head + '<h2>Ponte un alias</h2><p>Tus amigos te verán en la mesa con tu alias y tu avatar.</p>' +
+        '<div class="acts"><button type="button" data-act="menu">Volver</button><button type="button" class="primary" data-act="go-editar">Elegir alias</button></div>', false);
+      return;
+    }
+    if (mpWant && !msg) { var w = mpWant; mpJoin(w); return; }
+    openModal(head + '<h2>Juega con tus amigos</h2><div class="acc">' +
+      '<button type="button" class="primary" data-act="mp-create" style="padding:14px;border-radius:12px;font-weight:800;font-size:18px;background:var(--accent);color:#1d1a16">Crear una mesa</button>' +
+      '<p class="note">Tú invitas: compartes un código o un link, eliges el reloj y los asientos libres los juegan bots. Las partidas con amigos son amistosas: no cambian monedas, rating ni prestigio.</p>' +
+      '<label>¿Te invitaron? Escribe el código<input id="mpCode" type="text" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>' +
+      '<div class="msg" id="mpMsg" role="status">' + (msg || '') + '</div>' +
+      '<div class="acts"><button type="button" data-act="menu">Volver</button><button type="button" class="primary" data-act="mp-join">Unirme</button></div></div>', false);
+  }
+  async function mpCreate() {
+    if (mpBusy) return; mpBusy = true; mpMsg('Creando la mesa…', true);
+    try {
+      var db = await rtLoad(), code = '', ok = false;
+      for (var t = 0; t < 6 && !ok; t++) {
+        code = ''; for (var i = 0; i < 5; i++) code += MPABC[Math.floor(Math.random() * MPABC.length)];
+        try {
+          var r = await db.runTransaction(db.ref(FB.rt, 'rooms/' + code + '/meta'), function (cur) {
+            return cur === null ? { host: FB.user.uid, status: 'lobby', clock: 10, lvl: 'medio', match: 0, mate: '', t: Date.now() } : undefined;
+          }, { applyLocally: false });
+          ok = r.committed;
+        } catch (e) { if (t === 5) throw e; }
+      }
+      if (!ok) throw new Error('codigo');
+      await mpEnter(code);
+    } catch (e) { mpMsg('No pude crear la mesa. Revisa tu conexión e intenta de nuevo.'); }
+    mpBusy = false;
+  }
+  async function mpJoin(code, quiet) {
+    code = cleanCode(code);
+    if (code.length < 5) { mpMsg('El código tiene 5 letras o números.'); return; }
+    if (mpBusy) return; mpBusy = true; mpMsg('Buscando la mesa…', true);
+    var why = '';
+    try { await mpEnter(code); }
+    catch (e) {
+      why = e && e.mp === 'no' ? 'No encontré la mesa ' + code + '. Revisa el código.' : e && e.mp === 'cerrada' ? 'Esa mesa ya se cerró.' :
+        e && e.mp === 'llena' ? 'Esa mesa ya está llena.' : e && e.mp === 'jugando' ? 'Esa mesa ya empezó a jugar sin ti.' : 'No pude entrar a la mesa. Revisa tu conexión.';
+    }
+    mpBusy = false;
+    if (why) { mpWant = null; ssSet(WANTK, null); lsDel(MESAK); if (!quiet) showAmigos(why); }
+  }
+  async function mpEnter(code) {
+    var db = await rtLoad();
+    var snap = await db.get(db.ref(FB.rt, 'rooms/' + code));
+    var room = snap.exists() ? snap.val() : null;
+    if (!room || !room.meta) throw { mp: 'no' };
+    var meta = room.meta, pls = room.players || {}, uid = FB.user.uid;
+    if (meta.status === 'closed') throw { mp: 'cerrada' };
+    var seated = meta.seats && [0, 1, 2, 3].some(function (i) { return meta.seats[i] && meta.seats[i].u === uid; });
+    if (meta.status === 'play' && !seated) throw { mp: 'jugando' };
+    if (meta.status === 'lobby' && !pls[uid] && Object.keys(pls).filter(function (u) { return !pls[u].left; }).length >= 4) throw { mp: 'llena' };
+    if (MP) mpStop();
+    mpWant = null; ssSet(WANTK, null);
+    MP = { code: code, host: meta.host === uid, k: 0, meta: null, players: pls, match: -1, next: 0, buf: {}, un: [], unLog: null, pending: false, strikes: 0, auto: false,
+      t: (pls[uid] && pls[uid].t) || Date.now(), t0: 0, cp: null, left: null, des: 0, lobbyShown: false };
+    lsSet(MESAK, code);
+    await db.update(rref('players/' + uid), mpMe());
+    MP.un.push(db.onValue(db.ref(FB.rt, '.info/connected'), function (s) {
+      if (!MP || s.val() !== true) return;
+      db.onDisconnect(rref('players/' + uid + '/on')).set(false);
+      db.update(rref('players/' + uid), { on: true }).catch(function () {});
+    }));
+    MP.un.push(db.onValue(rref('players'), function (s) { if (MP) { MP.players = s.val() || {}; mpOnPlayers(); } }));
+    MP.un.push(db.onValue(rref('meta'), function (s) { if (MP) mpOnMeta(s.val()); }));
+  }
+  function mpStop() {
+    if (!MP) return;
+    MP.un.forEach(function (u) { try { u(); } catch (e) { /* idem */ } });
+    if (MP.unLog) try { MP.unLog(); } catch (e) { /* idem */ }
+    clearTimeout(MP.wT); clearTimeout(MP.nT); clearTimeout(MP.pumpT); clearInterval(MP.ci);
+    MP = null;
+  }
+  /* Salir de la mesa. El anfitrión la cierra para todos. Al salir se recarga para volver al juego normal. */
+  async function mpLeave(quiet) {
+    if (!MP) return;
+    var db = FB.m.db, host = MP.host, code = MP.code, uid = FB.user && FB.user.uid, w;
+    lsDel(MESAK);
+    try {
+      if (host) w = db.update(db.ref(FB.rt, 'rooms/' + code + '/meta'), { status: 'closed' });
+      else if (uid) w = db.update(db.ref(FB.rt, 'rooms/' + code + '/players/' + uid), { on: false, left: true });
+    } catch (e) { /* idem */ }
+    mpStop();
+    if (quiet) { if (G && G.mp) G = null; return; }
+    try { await Promise.race([w, new Promise(function (r) { setTimeout(r, 1500); })]); } catch (e) { /* idem */ }
+    location.reload();
+  }
+  function mpPlayersList() {
+    var pl = MP.players || {};
+    return Object.keys(pl).filter(function (u) { return !pl[u].left; }).sort(function (a, b) { return (pl[a].t || 0) - (pl[b].t || 0) || (a < b ? -1 : 1); }).slice(0, 4);
+  }
+  function mpOnPlayers() {
+    if (G && G.mp) {
+      [1, 2, 3].forEach(function (p) { var b = BOTS[G.seats[p]], pl = b && b.human && MP.players[b.uid]; if (pl) { b.name = pl.alias || b.name; if (pl.av) { b.skin = pl.av.skin; b.look = pl.av.look; b.shirt = pl.av.shirt; } } });
+      if (G.H) { renderSeats(); mpWatch(); }
+    }
+    if (MP.meta && MP.meta.status === 'lobby' && $('#modalCard .lobby') && !$('#modal').hidden) showLobby();
+  }
+  function mpOnMeta(meta) {
+    if (!meta || meta.status === 'closed') {
+      var wasHost = MP.host; lsDel(MESAK); mpStop();
+      if (!wasHost) { ssSet('domino-bravo-aviso', 'El anfitrión cerró la mesa.'); location.reload(); }
+      return;
+    }
+    MP.meta = meta;
+    if (meta.status === 'lobby') {
+      if (mpPlayersList().indexOf(FB.user.uid) < 0) return;
+      if (!MP.lobbyShown || ($('#modalCard .lobby') && !$('#modal').hidden)) { MP.lobbyShown = true; showLobby(); }
+      return;
+    }
+    if (meta.status === 'play' && meta.match !== MP.match) mpBegin(false);
+    else if (G && G.mp && G.H) { mpClockStart(MP.cp); renderSeats(); }
+  }
+
+  /* Sala de espera. */
+  function showLobby() {
+    var m = MP.meta, list = mpPlayersList(), pl = MP.players, host = MP.host, guests = list.filter(function (u) { return u !== m.host; });
+    var mate = guests.indexOf(m.mate) >= 0 ? m.mate : '';
+    var rows = list.map(function (u, i) {
+      var x = pl[u] || {}, isHost = u === m.host;
+      var role = isHost ? 'Anfitrión' : u === mate ? 'Pareja del anfitrión' : 'Rival del anfitrión';
+      return '<div class="row">' + drawAvatar(x.av || { skin: '#d9a577', look: 'me', shirt: '#f3ecdc' }, 'var(--us)', 'lb' + i) +
+        '<b>' + esc(x.alias || 'Jugador') + (u === FB.user.uid ? ' (tú)' : '') + '<small>' + role + (x.on === false ? ' · desconectado' : '') + '</small></b>' +
+        (host && !isHost ? '<button type="button" class="' + (u === mate ? 'on' : '') + '" data-act="mp-mate" data-u="' + u + '">' + (u === mate ? 'Es mi pareja' : 'Hacer mi pareja') + '</button>' : '') + '</div>';
+    }).join('');
+    for (var i = list.length; i < 4; i++) rows += '<div class="row free">Asiento libre: lo juega un bot</div>';
+    function opts(act, cur, arr) {
+      return '<div class="opts">' + arr.map(function (o) { return '<button type="button" class="' + (o[0] === cur ? 'on' : '') + '" data-act="' + act + '" data-v="' + o[0] + '"' + (host ? '' : ' disabled') + '>' + o[1] + '</button>'; }).join('') + '</div>';
+    }
+    openModal('<p class="eyebrow">Con amigos</p><h2>Mesa de ' + esc((pl[m.host] || {}).alias || 'tu amigo') + '</h2><div class="lobby">' +
+      '<div class="code" aria-label="Código de la mesa">' + MP.code + '</div>' +
+      '<div class="acts"><button type="button" data-act="mp-copy">Copiar link</button>' + (navigator.share ? '<button type="button" data-act="mp-share">Compartir</button>' : '') + '</div>' +
+      '<p class="note">Pasa este código o el link a tus amigos. Cada uno necesita su cuenta y su alias.</p>' + rows +
+      '<h3>Reloj por jugada</h3>' + opts('mp-clock', m.clock || 0, [[8, '8 s'], [10, '10 s'], [15, '15 s'], [0, 'Sin reloj']]) +
+      '<h3>Nivel de los bots</h3>' + opts('mp-lvl', m.lvl || 'medio', [['facil', 'Fácil'], ['medio', 'Medio'], ['experto', 'Experto']]) +
+      '<div class="msg" id="mpMsg" role="status"></div>' +
+      (host ? '' : '<p class="note">Esperando a que el anfitrión empiece la partida.</p>') +
+      '<div class="acts"><button type="button" data-act="mp-leave">' + (host ? 'Cerrar la mesa' : 'Salir') + '</button>' +
+      (host ? '<button type="button" class="primary" data-act="mp-start">Empezar</button>' : '') + '</div></div>', false);
+  }
+  function mpLink() { return location.origin + location.pathname + '?mesa=' + MP.code; }
+  function mpStart() {
+    var m = MP.meta, list = mpPlayersList(), guests = list.filter(function (u) { return u !== m.host; }).slice(0, 3);
+    var mate = guests.indexOf(m.mate) >= 0 ? m.mate : '', rivals = guests.filter(function (u) { return u !== mate; });
+    if (!mate && rivals.length === 3) mate = rivals.shift();
+    var pool = lvOf(m.lvl || 'medio').bots.slice().sort(function () { return Math.random() - 0.5; });
+    function seat(u) { return u ? { u: u } : { b: pool.shift() }; }
+    var seats = { 0: { u: m.host }, 2: seat(mate), 1: seat(rivals[0]), 3: seat(rivals[1]) };
+    FB.m.db.update(rref('meta'), { seats: seats, status: 'play', match: (m.match || 0) + 1 }).catch(function () { mpMsg('No pude empezar. Revisa tu conexión.'); });
+  }
+  function mpAct(a, b) {
+    if (a === 'mp-create') { mpCreate(); return; }
+    if (a === 'mp-join') { mpJoin(($('#mpCode') || {}).value); return; }
+    if (!MP) return;
+    var db = FB.m.db;
+    if (a === 'mp-leave') {
+      if (!b.dataset.arm) { b.dataset.arm = '1'; b.textContent = MP.host ? 'Toca otra vez: se cierra para todos' : 'Toca otra vez para salir'; return; }
+      mpLeave();
+    }
+    else if (a === 'mp-copy') {
+      var link = mpLink();
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(function () { mpMsg('Link copiado. Pégalo en un mensaje a tus amigos.', true); }, function () { mpMsg(link, true); });
+      else mpMsg(link, true);
+    }
+    else if (a === 'mp-share') { try { navigator.share({ title: 'Domino Bravo', text: 'Te invito a mi mesa de Domino Bravo. Código: ' + MP.code, url: mpLink() }).catch(function () {}); } catch (e) { /* idem */ } }
+    else if (a === 'mp-back') { MP.auto = false; MP.strikes = 0; mpTell(); closeModal(); if (G && G.H && !G.H.over) step(); }
+    else if (a === 'mp-next') mpNext();
+    else if (!MP.host) return;
+    else if (a === 'mp-mate') db.update(rref('meta'), { mate: MP.meta.mate === b.dataset.u ? '' : b.dataset.u });
+    else if (a === 'mp-clock') db.update(rref('meta'), { clock: +b.dataset.v });
+    else if (a === 'mp-lvl') db.update(rref('meta'), { lvl: b.dataset.v });
+    else if (a === 'mp-start') mpStart();
+    else if (a === 'mp-rematch') { b.disabled = true; db.update(rref('meta'), { match: MP.match + 1 }); }
+  }
+
+  /* Empieza (o retoma) una partida: arma la mesa vista desde mi asiento y se pone a leer la lista de jugadas. */
+  function mpBegin(again) {
+    var meta = MP.meta, db = FB.m.db, uid = FB.user.uid, k = -1;
+    [0, 1, 2, 3].forEach(function (i) { if (meta.seats[i] && meta.seats[i].u === uid) k = i; });
+    if (k < 0) { lsDel(MESAK); mpStop(); showAmigos('Esa mesa ya empezó a jugar sin ti.'); return; }
+    MP.k = k; MP.match = meta.match; MP.next = 0; MP.buf = {}; MP.pending = false;
+    if (!again) { MP.des = 0; MP.strikes = 0; }
+    clearTimeout(timer); clearTimeout(MP.wT); clearTimeout(MP.nT); clearInterval(MP.ci);
+    if (MP.unLog) try { MP.unLog(); } catch (e) { /* idem */ }
+    var seats = [null];
+    [1, 2, 3].forEach(function (l) {
+      var s = meta.seats[can(l)];
+      if (s.b && BOTS[s.b]) { seats[l] = s.b; return; }
+      var pl = MP.players[s.u] || {}, av = pl.av || {}, id = 'mp:' + (s.u || l);
+      BOTS[id] = { name: pl.alias || 'Jugador', skin: av.skin || '#d9a577', look: LOOKS[av.look] ? av.look : 'me', shirt: av.shirt || '#f3ecdc', level: 'medio', human: true, uid: s.u };
+      seats[l] = id;
+    });
+    G = { mp: true, scores: [0, 0], handNo: 0, H: null, lastKey: null, level: 'medio', seats: seats };
+    peekOn = false; resultMemo = null; sel = null; callTarget = null; callMode = false; betOpen = false; waitArm = false; lastMsg = '';
+    closeModal(); say('Repartiendo…');
+    MP.unLog = db.onChildAdded(rref('log/' + MP.match), function (s) {
+      if (!MP) return;
+      MP.buf[+s.key] = s.val();
+      clearTimeout(MP.pumpT); MP.pumpT = setTimeout(mpPump, 30);
+    });
+    /* El anfitrión reparte la primera mano. Si ya estaba repartida (recargó la página), la transacción no escribe nada. */
+    if (MP.host) mpSend({ t: 'deal', seed: Math.floor(Math.random() * 2147483647), first: true }, 0);
+  }
+  /* Aplica en orden las jugadas recibidas. Si hay varias en cola (alguien recargó), las pasa sin animación. */
+  function mpPump() {
+    if (!MP || !G || !G.mp) return;
+    while (MP && MP.buf[MP.next] !== undefined) {
+      var a = MP.buf[MP.next], more = MP.buf[MP.next + 1] !== undefined;
+      delete MP.buf[MP.next]; MP.next++; MP.pending = false;
+      if (!mpApply(a, more)) { mpDesync(); return; }
+    }
+  }
+  function mpDesync() {
+    MP.des++;
+    if (MP.des > 2) { toast('No pude sincronizar la mesa. Sal y vuelve a entrar con el código.', 'bad'); return; }
+    toast('Reacomodando la mesa…');
+    mpBegin(true);
+  }
+  function mpScore() { var H = G.H; H.scored = true; var r = E.scoreHand(H); E.resolveBets(H); G.scores[r.team] += r.points; }
+  function mpApply(a, fast) {
+    var H = G.H, p, ev;
+    if (!a || !a.t) return false;
+    if (a.t === 'deal') {
+      if (H && !H.over) return false;
+      if (H && !H.scored) mpScore();
+      if (G.scores[0] >= META || G.scores[1] >= META) return false;
+      var Hc = E.newHand(a.first ? 0 : (a.st || 0), !!a.first, mpRng(a.seed));
+      var hc = Hc.hands;
+      Hc.hands = [0, 1, 2, 3].map(function (l) { return hc[can(l)]; });
+      Hc.turn = Hc.starter = loc(Hc.starter);
+      G.handNo++; G.H = Hc; G.lastKey = null;
+      flyKey = null; lastRect = null; lastMsg = ''; sel = null; callTarget = null; callMode = false;
+      betOpen = false; waitArm = false; peekOn = false; resultMemo = null; comboSt = 0; curL = null;
+      clearTimeout(MP.nT);
+      if (!fast) { closeModal(); step(); }
+      return true;
+    }
+    if (!H || H.over || typeof a.s !== 'number') return false;
+    p = loc(a.s);
+    if (H.turn !== p) return false;
+    if (a.t === 'pass') {
+      if (E.canPlay(H, p)) return false;
+      ev = E.passTurn(H, p);
+      if (fast) return true;
+      if (p === 0) { callTarget = null; callMode = false; waitArm = false; sel = null; lastMsg = 'Pasaste. '; toast('No tenías ficha: pasaste.'); }
+      else { bubble(p, 'Paso'); lastMsg = nm(p) + ' pasó. '; }
+      applyEvents(ev); step();
+      return true;
+    }
+    if (a.t !== 'play') return false;
+    if (!E.legalMoves(H, p).some(function (m) { return m.i === a.i && m.side === a.side; })) return false;
+    var t = H.hands[p][a.i], call = a.call == null ? null : loc(a.call), says = [];
+    var betOk = a.bet ? E.declareBet(H, p, a.bet) : false;
+    ev = E.playTile(H, p, a.i, a.side, call, !!a.wait);
+    G.lastKey = keyOf(a.side); G.lastBy = p;
+    if (fast) return true;
+    if (p === 0) { lastMsg = ''; sel = null; callTarget = null; callMode = false; betOpen = false; waitArm = false; }
+    else {
+      lastMsg = nm(p) + ' puso el ' + t[0] + '-' + t[1] + '. ';
+      if (betOk) { says.push('Canto ' + a.bet); lastMsg += 'Cantó ' + a.bet + '. '; }
+      if (call != null) says.push(call === 0 ? 'Tú pasas' : nm(call) + ' pasa');
+      if (a.wait) says.push('Aquí te espero');
+      if (says.length) bubble(p, says.join(' · '));
+    }
+    applyEvents(ev); step(); fly(p);
+    return true;
+  }
+  /* Escribe la jugada número n. Solo entra si nadie escribió antes ese número. */
+  function mpSend(a, n) {
+    if (!MP) return;
+    var db = FB.m.db, m = MP.match;
+    if (n == null) n = MP.next;
+    Object.keys(a).forEach(function (k) { if (a[k] == null) delete a[k]; });
+    MP.pending = true;
+    db.runTransaction(rref('log/' + m + '/' + n), function (cur) { return cur === null ? a : undefined; }, { applyLocally: false })
+      .catch(function () {
+        if (!MP || MP.match !== m || MP.next !== n) return;
+        MP.pending = false; toast('No se pudo enviar la jugada. Revisa tu conexión.', 'bad');
+        if (G && G.H && !G.H.over) step();
+      });
+  }
+  function mpPlay(i, side) {
+    var H = G.H;
+    if (MP.pending || MP.auto || H.over || H.turn !== 0) return;
+    MP.strikes = 0;
+    mpSend({ t: 'play', s: MP.k, i: i, side: side, call: callTarget == null ? null : can(callTarget), wait: !!waitArm, bet: betOf(0) });
+    sel = null; renderMe();
+  }
+  /* El anfitrión juega por un bot, o por una persona que se fue o dejó pasar el reloj. */
+  function mpBot(p) {
+    var H = G.H;
+    if (!MP || MP.pending || !H || H.over || H.turn !== p) return;
+    var b = p === 0 ? null : BOTS[G.seats[p]], human = !b || b.human;
+    var m = E.botMove(H, p, null, human ? 'medio' : b.level, human ? undefined : b.style);
+    if (!m) mpSend({ t: 'pass', s: can(p) });
+    else mpSend({ t: 'play', s: can(p), i: m.i, side: m.side, call: m.call == null ? null : can(m.call), wait: !!m.wait, bet: m.bet || null });
+  }
+  /* Se llama en cada cambio de turno. Devuelve true si el turno NO lo juega esta persona ahora. */
+  function mpTurn(p) {
+    var H = G.H;
+    MP.t0 = Date.now(); mpClockStart(p);
+    if (p === 0) {
+      if (!MP.auto) return false;
+      say('Un bot juega por ti.');
+      if (MP.host) { clearTimeout(MP.wT); MP.wT = setTimeout(function () { mpBot(0); }, 1900); }
+      return true;
+    }
+    if (!H.first) say('Mano ' + G.handNo + ': sale ' + nm(p) + (H.needSix ? ' con el doble seis.' : '.'));
+    else say(lastMsg + 'Juega ' + nm(p) + '.');
+    mpWatch();
+    return true;
+  }
+  function mpWatch() {
+    clearTimeout(MP.wT);
+    var H = G.H;
+    if (!MP.host || !H || H.over) return;
+    var p = H.turn, wait;
+    if (p === 0) { if (MP.auto) MP.wT = setTimeout(function () { mpBot(0); }, 1900); return; }
+    var b = BOTS[G.seats[p]];
+    if (!b.human) wait = 1900;
+    else {
+      var pl = MP.players[b.uid] || {};
+      if (pl.bot) wait = 1900;
+      else if (pl.on === false || pl.left) wait = 5000;
+      else if (MP.meta.clock > 0) wait = MP.meta.clock * 1000 + 6000;
+      else return;
+    }
+    wait = Math.max(600, wait - (Date.now() - MP.t0));
+    MP.wT = setTimeout(function () { if (MP && G.H === H) mpBot(p); }, wait);
+  }
+  function mpFlags(p) {
+    var H = G.H, out = '';
+    if (!MP) return out;
+    if (p !== 0) {
+      var b = BOTS[G.seats[p]], pl = b && b.human && (MP.players[b.uid] || {});
+      if (pl && (pl.bot || pl.left || pl.on === false)) out += '<span class="flag">' + (pl.left ? 'Se fue: juega un bot' : pl.on === false ? 'Desconectado' : 'Juega un bot') + '</span>';
+    } else if (MP.auto) out += '<span class="flag">Un bot juega por ti</span>';
+    if (!H.over && H.turn === p && MP.cp === p && MP.left != null) out += '<span class="flag mpclk' + (MP.left <= 3 ? ' low' : '') + '">' + MP.left + ' s</span>';
+    return out;
+  }
+  function mpClockStart(p) {
+    clearInterval(MP.ci); MP.cp = p; MP.left = null;
+    var c = MP.meta.clock;
+    if (!(c > 0) || !G.H || G.H.over) return;
+    function tick() {
+      if (!MP || !G || !G.H) return;
+      var left = Math.max(0, Math.ceil(c - (Date.now() - MP.t0) / 1000));
+      if (left !== MP.left) {
+        MP.left = left;
+        var els = document.querySelectorAll('.mpclk');
+        if (!els.length) { renderSeats(); renderMe(); }
+        else els.forEach(function (el) { el.textContent = left + ' s'; el.classList.toggle('low', left <= 3); });
+      }
+      if (left <= 0) { clearInterval(MP.ci); if (p === 0 && !MP.auto && !MP.pending && !G.H.over && G.H.turn === 0) mpTimeout(); }
+    }
+    MP.left = c; MP.ci = setInterval(tick, 250);
+  }
+  /* Se me acabó el tiempo: el reloj juega una ficha por mí. A la tercera seguida, un bot toma mi lugar hasta que yo vuelva. */
+  function mpTimeout() {
+    var H = G.H, m = E.botMove(H, 0, null, 'medio');
+    if (!m) return;
+    MP.strikes++;
+    sel = null; callTarget = null; callMode = false; betOpen = false; waitArm = false;
+    mpSend({ t: 'play', s: MP.k, i: m.i, side: m.side, bet: betOf(0) });
+    if (MP.strikes >= 3) {
+      MP.auto = true; mpTell();
+      openModal('<p class="eyebrow">Con amigos</p><h2>Un bot está jugando por ti</h2><p>Dejaste pasar el reloj tres veces seguidas. Para que la mesa no se frene, un bot juega tu mano hasta que vuelvas.</p>' +
+        '<div class="acts"><button type="button" class="primary" data-act="mp-back">Volver a jugar</button></div>', true);
+    } else toast('Se acabó tu tiempo: el reloj jugó por ti.', 'bad');
+  }
+  /* Avisos de cantos en partida amistosa: se cuenta qué pasó, sin sumar ni restar prestigio. */
+  function mpEvent(e) {
+    if (e.type === 'bet') return;
+    var c = nm(e.caller), t = nm(e.target), msg, kind = '';
+    if (e.type === 'wait') {
+      if (e.caller === 0) { msg = e.hit ? '¡Te estaba esperando! Puedes golpear el ' + e.Y + ' sin soltar tu firme.' : 'Aquí te espero: no se dio el golpe.'; kind = e.hit ? 'good' : 'bad'; }
+      else if (e.target === 0) { msg = e.hit ? c + ' te estaba esperando y dio el golpe.' : c + ' se quedó esperando.'; kind = e.hit ? 'bad' : 'good'; }
+      else return;
+    } else if (e.hit) {
+      if (e.caller === 0) { msg = 'Acertaste: ' + t + ' pasó.'; kind = 'good'; }
+      else if (e.target === 0) { msg = c + ' cantó tu pase y acertó.'; kind = 'bad'; }
+      else msg = c + ' acertó el pase de ' + t + '.';
+    } else {
+      if (e.caller === 0) { msg = 'Fallaste: ' + t + ' tenía ficha.'; kind = 'bad'; }
+      else if (e.target === 0) { msg = c + ' cantó tu pase y falló.'; kind = 'good'; }
+      else msg = c + ' falló el canto: ' + t + ' tenía ficha.';
+    }
+    toast(msg, kind);
+  }
+  function mpNext() {
+    clearTimeout(MP.nT);
+    var H = G.H;
+    if (!MP.host || MP.pending || !H || !H.over || G.scores[0] >= META || G.scores[1] >= META) return;
+    mpSend({ t: 'deal', seed: Math.floor(Math.random() * 2147483647), first: false, st: can((H.starter + 1) % 4) });
+  }
+  /* Botones del fin de mano y del fin de partida con amigos. */
+  function mpHandEnd(won) {
+    var over = G.scores[0] >= META || G.scores[1] >= META, peek = '<button type="button" data-act="peek">Ver mesa</button>';
+    if (!over) {
+      if (MP.host) { clearTimeout(MP.nT); MP.nT = setTimeout(mpNext, 25000); }
+      return MP.host ? '<div class="acts">' + peek + '<button type="button" class="primary" data-act="mp-next">Siguiente mano</button></div>'
+        : '<p class="note">El anfitrión reparte la siguiente mano.</p><div class="acts">' + peek + '</div>';
+    }
+    G.done = true;
+    var lines = ['Partida amistosa: no cambia monedas, rating ni prestigio.'], dl = dailyLine();
+    if (dl) { lines.push(dl); saveP(); renderScore(); }
+    var won2 = G.scores[0] >= META;
+    return '<div class="final"><div class="mood" aria-hidden="true">' + (won2 ? '🏆' : '🤝') + '</div><h2>' + (won2 ? 'Partida ganada' : 'Partida perdida') + '</h2><ul>' +
+      lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul></div>' +
+      (MP.host ? '' : '<p class="note">El anfitrión decide si hay revancha.</p>') +
+      '<div class="acts">' + peek + '<button type="button" data-act="mp-leave">Salir de la mesa</button>' +
+      (MP.host ? '<button type="button" class="primary" data-act="mp-rematch">Revancha</button>' : '') + '</div>';
+  }
+  /* Al abrir el juego: si vengo de un link de invitación (?mesa=CÓDIGO) o estaba sentado en una mesa, vuelvo a ella. */
+  function mpAuto() {
+    if (MP || mpBusy) return;
+    var saved = lsGet(MESAK);
+    if (!FB.user) { if (mpWant) showAmigos(); return; }
+    if (mpWant) { if (!P.alias) showAmigos(); else mpJoin(mpWant); }
+    else if (saved) mpJoin(saved, true);
+  }
+  (function () {
+    var q = null;
+    try { q = new URLSearchParams(location.search).get('mesa'); } catch (e) { /* idem */ }
+    if (q) { ssSet(WANTK, cleanCode(q)); try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* idem */ } }
+    mpWant = ssGet(WANTK) || null;
+    var av = ssGet('domino-bravo-aviso');
+    if (av) { ssSet('domino-bravo-aviso', null); setTimeout(function () { toast(av); }, 700); }
+    if (mpWant || lsGet(MESAK)) setTimeout(fbLoad, 50);
+  })();
+
   function start(data) {
     SND.label();
     applyMesa(P.mesa);
