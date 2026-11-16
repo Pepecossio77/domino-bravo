@@ -190,6 +190,23 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 .mesa small{display:block;margin-top:2px}
 .lgd{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .note{color:var(--muted);font-size:14px}
+.pf{display:flex;align-items:center;gap:12px}
+.pf .av{width:56px;height:56px;flex:none;border-radius:50%;overflow:hidden;display:block}
+.pf .av.big{width:84px;height:84px}
+.pf .av svg{display:block;width:100%;height:100%}
+.pf b{display:block;font-size:20px;line-height:1.2;overflow-wrap:anywhere}
+.pf small{display:block;color:var(--muted);font-size:14px}
+.sws{display:flex;flex-wrap:wrap;gap:8px}
+.swb{width:38px;height:38px;border-radius:50%;border:3px solid rgba(255,255,255,.25);padding:0}
+.swb.on{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:2px}
+.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.lk{display:grid;justify-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:var(--ink)}
+.lk svg{width:48px;height:48px;border-radius:50%}
+.lk span{font-size:13px;font-weight:700;line-height:1.15;text-align:center}
+.lk em{font-style:normal;font-size:12px;color:var(--muted)}
+.lk.paid em{color:var(--accent)}
+.lk.on{border-color:var(--accent);background:rgba(242,182,50,.14)}
+.ed .acts button:disabled{opacity:.45}
 .legal{margin:10px 0 0;color:var(--muted);font-size:13px;text-align:center}.legal a{color:inherit;text-decoration:underline}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
 .stats div{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 10px}
@@ -865,7 +882,6 @@ if (typeof module !== 'undefined') module.exports = E;
     yeya: ['berta', 'gabo'], cheo: ['berta', 'gabo'],
     lucho: ['micaela', 'gollo', 'tito'], mari: ['micaela', 'gollo', 'tito']
   };
-  var ME = { name: 'Tú', skin: '#d9a577', look: 'me', shirt: '#f3ecdc' };
   var LV = [
     { id: 'facil', name: 'Fácil', bots: ['henry', 'daniel', 'chela', 'rafa'], mate: ['berta', 'gabo'], coins: 50, note: 'Para aprender la mesa. Se equivocan seguido.' },
     { id: 'medio', name: 'Medio', bots: ['berta', 'gabo', 'yeya', 'cheo'], mate: ['micaela', 'gollo', 'tito'], coins: 100, note: 'Juegan de oficio, sin contar fichas.' },
@@ -1000,11 +1016,47 @@ if (typeof module !== 'undefined') module.exports = E;
     return '<svg class="shield' + (big ? ' big' : '') + (a && has ? '' : ' off') + '" viewBox="0 0 200 200" aria-hidden="true"><use href="#' + (i >= 0 ? 'bz-s' + i : 'bz-s-vacio') + '"/></svg>';
   }
 
+  /* ---------- Perfil del jugador: alias y avatar ----------
+     El alias (3 a 16 caracteres) y el avatar (piel, estilo, camisa) se guardan dentro del progreso P (y por eso también en la nube).
+     Algunos estilos son gratis y otros se compran con monedas (P.own guarda los comprados). Precios provisionales: los decide Pepe.
+     El alias todavía NO es único entre jugadores; eso llega con el modo "con amigos". */
+  var SKINS = ['#f1cba6', '#e0b48a', '#d9a577', '#b9855c', '#8a5a3c', '#6b4028'];
+  var SHIRTS = ['#f3ecdc', '#c8402f', '#2f5d8a', '#7aa05a', '#f2b632', '#8a4f7d', '#e86a5a', '#1d1a16'];
+  var MYLOOKS = [
+    ['me', 'Pelo corto', 0], ['bob', 'Melena', 0], ['long', 'Pelo largo', 0], ['curly', 'Rizos', 0], ['bald', 'Calvo', 0],
+    ['blond', 'Rubio', 150], ['black', 'Barba', 200], ['stache', 'Bigote', 200], ['grey', 'Canas y bigote', 250],
+    ['glasses', 'Lentes', 300], ['bun', 'Moño y aretes', 350], ['bunglasses', 'Moño y lentes', 350],
+    ['matu', 'Canas y lentes', 400], ['wrap', 'Turbante', 400], ['cap', 'Gorra y bigote', 500], ['hat', 'Sombrero', 600]
+  ];
+  function lookInfo(id) { return MYLOOKS.filter(function (l) { return l[0] === id; })[0]; }
+  function ownsLook(id, p) { p = p || P; var l = lookInfo(id); return !!l && (l[2] === 0 || DEV || (p.own || []).indexOf(id) >= 0); }
+  function fixProfile(p) {
+    if (typeof p.alias !== 'string') p.alias = '';
+    p.alias = p.alias.slice(0, 16);
+    if (!Array.isArray(p.own)) p.own = [];
+    var a = p.av && typeof p.av === 'object' ? p.av : {};
+    p.av = { skin: SKINS.indexOf(a.skin) >= 0 ? a.skin : '#d9a577', look: lookInfo(a.look) ? a.look : 'me', shirt: SHIRTS.indexOf(a.shirt) >= 0 ? a.shirt : '#f3ecdc' };
+  }
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function myName() { return P.alias ? esc(P.alias) : 'Tú'; }
+  /* Palabras que no se aceptan en un alias (se compara sin tildes, sin espacios y cambiando 0,1,3,4,5 por letras). */
+  var BADW = ['puta', 'puto', 'mierda', 'verga', 'pendej', 'cabron', 'marica', 'maricon', 'culo', 'cono', 'chucha', 'chocho', 'pinga', 'polla', 'zorra', 'perra', 'malparid', 'hijueput', 'hdp', 'gonorrea', 'carajo', 'joder', 'mamagu', 'cagad', 'nazi', 'hitler', 'violad', 'fuck', 'shit', 'bitch', 'nigg', 'cunt', 'dick', 'pussy', 'whore', 'slut', 'fag', 'admin', 'moderador', 'dominobravo', 'soporte'];
+  function aliasCheck(t) {
+    t = String(t || '').replace(/\s+/g, ' ').trim();
+    if (!t) return { ok: true, v: '' };
+    if (t.length < 3) return { ok: false, msg: 'El alias necesita al menos 3 caracteres.' };
+    if (t.length > 16) return { ok: false, msg: 'El alias puede tener hasta 16 caracteres.' };
+    if (!/^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ _.\-]+$/.test(t)) return { ok: false, msg: 'Usa solo letras, números, espacios, punto, guion o guion bajo.' };
+    var n = t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/0/g, 'o').replace(/1/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/[^a-z]/g, '');
+    if (BADW.some(function (w) { return n.indexOf(w) >= 0; })) return { ok: false, msg: 'Ese alias no está permitido. Prueba con otro.' };
+    return { ok: true, v: t };
+  }
+
   function defP() {
     var bp = {};
     Object.keys(BOTS).forEach(function (k) { bp[k] = BOTS[k].pr; });
     return { coins: 0, prestige: 0, bots: bp, beaten: {}, streak: 0, best: 0, wins: 0, losses: 0,
-      hit: 0, miss: 0, bhit: 0, bmiss: 0, rating: 1000, callStreak: 0, callBest: 0, zap: 0, tr40: 0, hs: 0, hbest: 0, combos: 0, mw: {}, dayStreak: 0, dayBest: 0, lastDay: '', shown: null, acc: [], mesa: 'domingo', seen: false, v: PVER, laps: 0, lapDone: false, offered: false };
+      hit: 0, miss: 0, bhit: 0, bmiss: 0, rating: 1000, callStreak: 0, callBest: 0, zap: 0, tr40: 0, hs: 0, hbest: 0, combos: 0, mw: {}, dayStreak: 0, dayBest: 0, lastDay: '', shown: null, acc: [], mesa: 'domingo', seen: false, v: PVER, laps: 0, lapDone: false, offered: false, alias: '', av: { skin: '#d9a577', look: 'me', shirt: '#f3ecdc' }, own: [] };
   }
   function loadP() {
     try {
@@ -1019,6 +1071,7 @@ if (typeof module !== 'undefined') module.exports = E;
         if (p.acc.indexOf('zapatero') >= 0 && !p.zap) p.zap = 1;
         if (p.acc.indexOf('aguila') >= 0 && p.callBest < 3) p.callBest = 3;
         if (!p.mw || typeof p.mw !== 'object') p.mw = {};
+        fixProfile(p);
         /* Mesas nuevas (13 nov): los ids viejos pasan a la primera mesa. */
         if (p.mw.clasica) p.mw.domingo = true;
         if (['domingo', 'acera', 'bar', 'asado', 'gollo', 'tito', 'apagon', 'jubilados', 'anoviejo', 'final', 'micaela'].indexOf(p.mesa) < 0) p.mesa = 'domingo';
@@ -1135,7 +1188,7 @@ if (typeof module !== 'undefined') module.exports = E;
       '<circle cx="20" cy="17" r="8" fill="' + spec.skin + '"/>' + LOOKS[spec.look] + '</g></svg>';
   }
   function avatar(p) {
-    return drawAvatar(p === 0 ? ME : BOTS[G.seats[p]], p % 2 === 0 ? 'var(--us)' : 'var(--them)', 's' + p);
+    return drawAvatar(p === 0 ? P.av : BOTS[G.seats[p]], p % 2 === 0 ? 'var(--us)' : 'var(--them)', 's' + p);
   }
 
   /* ---------- Mensajes ---------- */
@@ -1201,7 +1254,7 @@ if (typeof module !== 'undefined') module.exports = E;
     var ok = {};
     moves.forEach(function (m) { ok[m.i] = true; });
     $('#meInfo').innerHTML = '<span class="av' + (mine ? ' on' : '') + '">' + avatar(0) + '</span>' +
-      '<div class="who"><b>Tú' + (P.laps > 0 ? '<span class="emb" title="Emblema ' + EMBL[P.laps - 1][0] + '">' + bullSVG(P.laps) + '</span>' : '') + '</b><small>' + rankOf(P.prestige) + ' · ' + P.prestige + '</small></div>' +
+      '<div class="who"><b>' + myName() + (P.laps > 0 ? '<span class="emb" title="Emblema ' + EMBL[P.laps - 1][0] + '">' + bullSVG(P.laps) + '</span>' : '') + '</b><small>' + rankOf(P.prestige) + ' · ' + P.prestige + '</small></div>' +
       (isCalled(0) ? '<span class="flag">Te cantaron pase</span>' : '') +
       (betOf(0) ? '<span class="flag">Cantaste ' + betOf(0) + '</span>' : '') +
       (waitArm || (H.waits || []).some(function (w) { return w.caller === 0; }) ? '<span class="flag">Esperas a ' + nm(3) + '</span>' : '');
@@ -1653,10 +1706,59 @@ if (typeof module !== 'undefined') module.exports = E;
       '<p class="note">Los emblemas ganados no se compran ni se venden. Faltan cuatro que llegan con el juego en línea: Mesa Completa, Pareja Perfecta, Campeón y Legendario.</p>' +
       '<div class="acts"><button type="button" data-act="go-perfil">Volver al perfil</button><button type="button" class="primary" data-act="close">Cerrar</button></div>');
   }
+  /* Editor de alias y avatar. D es el borrador: nada se guarda hasta tocar Guardar. */
+  var D = null;
+  function showEditar(msg) {
+    if (!D) D = { alias: P.alias, skin: P.av.skin, look: P.av.look, shirt: P.av.shirt };
+    var li = lookInfo(D.look), need = ownsLook(D.look) ? 0 : li[2], short = need > P.coins;
+    function sw(kind, list, cur) {
+      return '<div class="sws">' + list.map(function (c) {
+        return '<button type="button" class="swb' + (c === cur ? ' on' : '') + '" data-act="ed-' + kind + '" data-v="' + c + '" style="background:' + c + '" aria-label="Color ' + c + '"></button>';
+      }).join('') + '</div>';
+    }
+    openModal('<p class="eyebrow">Perfil</p><h2>Tu alias y tu avatar</h2><div class="acc ed">' +
+      '<div class="pf"><span class="av big">' + drawAvatar(D, 'var(--us)', 'ed') + '</span><div><b>' + (D.alias ? esc(D.alias) : 'Sin alias') + '</b><small>' + li[1] + '</small></div></div>' +
+      '<label>Alias (3 a 16 caracteres)<input id="edAlias" type="text" maxlength="16" autocomplete="nickname" autocapitalize="words" value="' + esc(D.alias) + '"></label>' +
+      '<div class="msg" id="edMsg" role="status">' + (msg || '') + '</div>' +
+      '<h3>Piel</h3>' + sw('skin', SKINS, D.skin) +
+      '<h3>Estilo</h3><div class="looks">' + MYLOOKS.map(function (l, i) {
+        var own = ownsLook(l[0]);
+        return '<button type="button" class="lk' + (l[0] === D.look ? ' on' : '') + (own ? '' : ' paid') + '" data-act="ed-look" data-v="' + l[0] + '">' +
+          drawAvatar({ skin: D.skin, look: l[0], shirt: D.shirt }, 'var(--us)', 'lk' + i) + '<span>' + l[1] + '</span><em>' + (own ? (l[2] ? 'Tuyo' : 'Gratis') : l[2] + ' monedas') + '</em></button>';
+      }).join('') + '</div>' +
+      '<h3>Camisa</h3>' + sw('shirt', SHIRTS, D.shirt) +
+      '<p class="note">Tienes ' + P.coins + ' monedas. ' + (need ? (short ? 'Para "' + li[1] + '" te faltan ' + (need - P.coins) + '.' : '"' + li[1] + '" cuesta ' + need + ' monedas; se compra una sola vez.') : 'Los estilos son solo adorno: no cambian el juego.') + '</p>' +
+      '<div class="acts"><button type="button" data-act="go-perfil">Cancelar</button>' +
+      '<button type="button" class="primary" data-act="ed-save"' + (short ? ' disabled' : '') + '>' + (need ? 'Comprar y guardar · ' + need : 'Guardar') + '</button></div></div>', false);
+  }
+  function edAct(a, v) {
+    if (!D) return;
+    var inp = $('#edAlias'); if (inp) D.alias = inp.value;
+    if (a === 'ed-skin' && SKINS.indexOf(v) >= 0) D.skin = v;
+    else if (a === 'ed-shirt' && SHIRTS.indexOf(v) >= 0) D.shirt = v;
+    else if (a === 'ed-look' && lookInfo(v)) D.look = v;
+    else if (a === 'ed-save') {
+      var c = aliasCheck(D.alias);
+      if (!c.ok) { showEditar(c.msg); return; }
+      var li = lookInfo(D.look), need = ownsLook(D.look) ? 0 : li[2];
+      if (need > P.coins) { showEditar('No te alcanzan las monedas para ese estilo.'); return; }
+      if (need) { P.coins -= need; P.own.push(D.look); }
+      P.alias = c.v; P.av = { skin: D.skin, look: D.look, shirt: D.shirt };
+      D = null; saveP(); $('#coins').textContent = P.coins; if (G) renderAll();
+      toast(need ? 'Estilo "' + li[1] + '" comprado. Perfil guardado.' : 'Perfil guardado.', 'good');
+      showPerfil(); return;
+    }
+    showEditar();
+  }
+
   function showPerfil() {
+    D = null;
     var nr = nextRank(P.prestige);
     var calls = P.hit + P.miss;
-    openModal('<p class="eyebrow">Perfil</p><h2>' + rankOf(P.prestige) + '</h2>' +
+    openModal('<p class="eyebrow">Perfil</p>' +
+      '<div class="pf"><span class="av">' + drawAvatar(P.av, 'var(--us)', 'pf') + '</span><div><b>' + (P.alias ? esc(P.alias) : 'Sin alias') + '</b>' +
+      '<button type="button" class="lnk" data-act="go-editar">' + (P.alias ? 'Cambiar alias y avatar' : 'Ponte un alias y arma tu avatar') + '</button></div></div>' +
+      '<h2>' + rankOf(P.prestige) + '</h2>' +
       '<p>' + P.prestige + ' de prestigio. ' + (nr ? 'Te faltan ' + (nr[0] - P.prestige) + ' para ser ' + nr[1] + '.' : 'Llegaste al rango más alto.') + '</p>' +
       '<p><b>Rating: ' + plOf(P.rating)[1] + '</b> · ' + P.rating + ' puntos. ' + (nextPl(P.rating) ? 'Te faltan ' + (nextPl(P.rating)[0] - P.rating) + ' para ' + nextPl(P.rating)[1] + '.' : 'Llegaste al rating más alto.') + '</p>' +
       '<div class="stats"><div><b>' + P.coins + '</b><span>monedas</span></div><div><b>' + P.wins + '</b><span>partidas ganadas</span></div>' +
@@ -1765,6 +1867,8 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'install') { INST.go(); }
     else if (a === 'go-mesas') showMesas();
     else if (a === 'go-perfil') showPerfil();
+    else if (a === 'go-editar') showEditar();
+    else if (a.indexOf('ed-') === 0) edAct(a, b.dataset.v);
     else if (a === 'go-cuenta') showCuenta();
     else if (a === 'acc-google') accGoogle();
     else if (a === 'acc-login') accEmail(false);
@@ -1797,7 +1901,7 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'lapkeep') { lapArm = false; setLapSlot(lapHtml('kept')); }
     else if (a === 'reset') {
       if (!resetArm) { resetArm = true; showPerfil(); return; }
-      resetArm = false; clearTimeout(timer); P = defP(); P.seen = true; saveP(); applyMesa(P.mesa); G = null; saveG(); showMenu();
+      resetArm = false; clearTimeout(timer); var keepA = P.alias, keepV = P.av; P = defP(); P.seen = true; P.alias = keepA; if (lookInfo(keepV.look)[2] === 0) P.av = keepV; else P.av = { skin: keepV.skin, look: 'me', shirt: keepV.shirt }; saveP(); applyMesa(P.mesa); G = null; saveG(); showMenu();
     }
   });
   $('#side').addEventListener('click', function (e) {
