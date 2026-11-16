@@ -1052,10 +1052,15 @@ if (typeof module !== 'undefined') module.exports = E;
     return { ok: true, v: t };
   }
 
+  /* Monedas (decisión de Pepe, 15 nov): se empieza con 500. Quien ya jugaba recibe 500 una sola vez (P.gift).
+     Premio diario: por la primera partida terminada del día, 50 monedas; sube 10 por cada día seguido hasta 100. Si se falta un día, vuelve a 50. */
+  var START_COINS = 500, GIFTED = false;
+  function dailyBonus(streak) { return Math.min(100, 50 + 10 * (Math.max(1, streak) - 1)); }
+
   function defP() {
     var bp = {};
     Object.keys(BOTS).forEach(function (k) { bp[k] = BOTS[k].pr; });
-    return { coins: 0, prestige: 0, bots: bp, beaten: {}, streak: 0, best: 0, wins: 0, losses: 0,
+    return { coins: START_COINS, gift: true, bonusDay: '', prestige: 0, bots: bp, beaten: {}, streak: 0, best: 0, wins: 0, losses: 0,
       hit: 0, miss: 0, bhit: 0, bmiss: 0, rating: 1000, callStreak: 0, callBest: 0, zap: 0, tr40: 0, hs: 0, hbest: 0, combos: 0, mw: {}, dayStreak: 0, dayBest: 0, lastDay: '', shown: null, acc: [], mesa: 'domingo', seen: false, v: PVER, laps: 0, lapDone: false, offered: false, alias: '', av: { skin: '#d9a577', look: 'me', shirt: '#f3ecdc' }, own: [] };
   }
   function loadP() {
@@ -1072,6 +1077,7 @@ if (typeof module !== 'undefined') module.exports = E;
         if (p.acc.indexOf('aguila') >= 0 && p.callBest < 3) p.callBest = 3;
         if (!p.mw || typeof p.mw !== 'object') p.mw = {};
         fixProfile(p);
+        if (!raw.gift) { p.coins += START_COINS; p.gift = true; GIFTED = true; try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e3) { /* idem */ } }
         /* Mesas nuevas (13 nov): los ids viejos pasan a la primera mesa. */
         if (p.mw.clasica) p.mw.domingo = true;
         if (['domingo', 'acera', 'bar', 'asado', 'gollo', 'tito', 'apagon', 'jubilados', 'anoviejo', 'final', 'micaela'].indexOf(p.mesa) < 0) p.mesa = 'domingo';
@@ -1608,6 +1614,13 @@ if (typeof module !== 'undefined') module.exports = E;
       P.losses++; P.streak = 0; P.coins += 10;
       lines.push('10 monedas por terminar la partida.');
     }
+    var today = String(dayNo(new Date()));
+    if (P.bonusDay !== today) {
+      if (P.lastDay !== today) touchDay();
+      var bon = dailyBonus(P.dayStreak), nxt = dailyBonus(P.dayStreak + 1);
+      P.bonusDay = today; P.coins += bon;
+      lines.push('Premio diario: ' + bon + ' monedas' + (P.dayStreak > 1 ? ' (' + P.dayStreak + ' días seguidos)' : '') + '. ' + (nxt > bon ? 'Vuelve mañana y serán ' + nxt + '.' : 'Vuelve mañana por otras ' + nxt + '.'));
+    }
     var d = DELTA[lv.id] || [5, -15], oldR = P.rating, oldL = plOf(oldR)[1];
     P.rating = Math.max(0, oldR + (won ? d[0] : d[1]));
     var df = P.rating - oldR, newL = plOf(P.rating)[1];
@@ -2118,6 +2131,8 @@ if (typeof module !== 'undefined') module.exports = E;
     if (e.key === 'Enter' && e.target && e.target.id === 'accPass') accEmail(false);
   });
   try { if (sessionStorage.getItem('domino-bravo-adopted')) { sessionStorage.removeItem('domino-bravo-adopted'); setTimeout(function () { toast('Se cargó tu progreso desde la nube.', 'good'); }, 600); } } catch (e) { /* idem */ }
+  $('#coins').textContent = P.coins; /* el menú se ve antes de que exista una partida */
+  if (GIFTED) setTimeout(function () { toast('Regalo: 500 monedas para ti. Ahora todos empiezan con 500.', 'good'); }, 900);
   setTimeout(fbLoad, 1200);
   function openIfFree(fn) { if ($('#modal').hidden) fn(); }
   $('#btnMenu').addEventListener('click', function () { openIfFree(showMenu); });
