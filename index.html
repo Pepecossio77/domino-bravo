@@ -190,6 +190,7 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 .mesa small{display:block;margin-top:2px}
 .lgd{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .note{color:var(--muted);font-size:14px}
+.legal{margin:10px 0 0;color:var(--muted);font-size:13px;text-align:center}.legal a{color:inherit;text-decoration:underline}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
 .stats div{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 10px}
 .stats b{display:block;font-family:var(--display);font-weight:400;font-size:20px;font-variant-numeric:tabular-nums}
@@ -382,6 +383,7 @@ body[data-mesa="micaela"] #scene{background:radial-gradient(110% 95% at 50% 42%,
       <button type="button" data-nav="cuenta" id="btnAcc">Cuenta <em id="accEm">Entrar</em></button>
       <button type="button" data-nav="sound" id="btnSnd">Sonido <em id="sndEm">Sí</em></button>
       <button type="button" data-nav="full" id="btnFs">Pantalla completa</button>
+      <button type="button" data-nav="install" id="btnInst" hidden>Instalar app</button>
     </nav>
     <div class="wallet">
       <div class="co"><b id="coins">0</b><span>Monedas</span></div>
@@ -1606,7 +1608,8 @@ if (typeof module !== 'undefined') module.exports = E;
       '<button type="button" data-act="go-cuenta">Cuenta <em>' + (FB && FB.user ? 'Listo' : 'Entrar') + '</em></button>' +
       '<button type="button" data-act="go-ayuda">Cómo jugar</button>' +
       '<button type="button" data-act="sound">Sonido: ' + (SND.isOn() ? 'Sí' : 'No') + '</button>' +
-      (FS.hidden() ? '' : '<button type="button" data-act="full">' + (FS.on() ? 'Salir de pantalla completa' : 'Pantalla completa') + '</button>') + '</div>', !mid);
+      (FS.hidden() ? '' : '<button type="button" data-act="full">' + (FS.on() ? 'Salir de pantalla completa' : 'Pantalla completa') + '</button>') +
+      (INST.can() ? '<button type="button" data-act="install">Instalar app</button>' : '') + '</div>' + '<p class="legal"><a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>', !mid);
   }
   function dismiss() { if (!G) showMenu(); else if (G.done) showMenu(); else closeModal(); }
 
@@ -1759,6 +1762,7 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'menu') showMenu();
     else if (a === 'sound') { SND.toggle(); showMenu(); }
     else if (a === 'full') { FS.toggle(); }
+    else if (a === 'install') { INST.go(); }
     else if (a === 'go-mesas') showMesas();
     else if (a === 'go-perfil') showPerfil();
     else if (a === 'go-cuenta') showCuenta();
@@ -1801,6 +1805,7 @@ if (typeof module !== 'undefined') module.exports = E;
     if (!b) return;
     if (b.dataset.nav === 'sound') { SND.toggle(); return; }
     if (b.dataset.nav === 'full') { FS.toggle(); return; }
+    if (b.dataset.nav === 'install') { INST.go(); return; }
     var locked = $('#modal').dataset.locked && !$('#modal').hidden;
     if (locked && G && !G.done) return;
     var n = b.dataset.nav;
@@ -1832,6 +1837,34 @@ if (typeof module !== 'undefined') module.exports = E;
     ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { document.addEventListener(ev, label); });
     label();
     return { on: on, hidden: hidden, toggle: toggle };
+  })();
+
+  /* ---------- Instalar app ----------
+     Android y computadora (Chrome, Edge): el navegador avisa con 'beforeinstallprompt' y el botón abre su ventana de instalar.
+     iPhone y iPad no tienen ese aviso: el botón explica cómo agregarlo a la pantalla de inicio.
+     Si el juego ya está instalado (abre sin barras), el botón no sale. */
+  var INST = (function () {
+    var ev = null, done = false;
+    var ua = navigator.userAgent || '';
+    var ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    function can() { return !done && !FS.hidden() && (!!ev || ios); }
+    function label() {
+      var b = document.getElementById('btnInst'); if (b) b.hidden = !can();
+      /* Si el menú está abierto, se redibuja para que el botón aparezca o se quite ahí también. */
+      if ($('#modalCard [data-act="go-cuenta"]') && !$('#modal').hidden) showMenu();
+    }
+    function go() {
+      if (ev) {
+        var p = ev; ev = null; label();
+        try { p.prompt(); if (p.userChoice) p.userChoice.then(function (c) { if (c && c.outcome === 'accepted') { done = true; label(); } }); } catch (e) { /* el navegador no lo permitió */ }
+      } else if (ios) {
+        toast('En iPhone: toca Compartir y luego "Agregar a pantalla de inicio".', 'good');
+      }
+    }
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; label(); });
+    window.addEventListener('appinstalled', function () { ev = null; done = true; label(); toast('Domino Bravo quedó instalado.', 'good'); });
+    label();
+    return { can: can, go: go };
   })();
 
   /* ---------- Cuenta y guardado en la nube (Firebase, plan gratis) ----------
@@ -1960,7 +1993,8 @@ if (typeof module !== 'undefined') module.exports = E;
     } else if (FB.user) {
       h += '<div class="who">' + (FB.user.email || FB.user.displayName || 'Cuenta') + '</div><p>' + (FB.state || '') + '</p>' +
         '<p class="note">Tu progreso (monedas, prestigio, rating, bots vencidos y emblemas) se guarda solo. Si entras desde otro celular o computador, verás lo mismo. Si dos aparatos tienen progreso distinto, se usa el que lleve más partidas jugadas.</p>' +
-        '<div class="acts"><button type="button" data-act="acc-save">Guardar ahora</button><button type="button" data-act="acc-out">Salir</button></div>';
+        '<div class="acts"><button type="button" data-act="acc-save">Guardar ahora</button><button type="button" data-act="acc-out">Salir</button></div>' +
+        '<p class="legal"><a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>';
     } else {
       h += '<p>Puedes jugar sin cuenta. Con cuenta, tu progreso queda en la nube y lo recuperas en cualquier celular o computador.</p>' +
         '<button type="button" class="gbtn" data-act="acc-google">Entrar con Google</button>' +
@@ -1968,7 +2002,8 @@ if (typeof module !== 'undefined') module.exports = E;
         '<label>Contraseña<input id="accPass" type="password" autocomplete="current-password"></label>' +
         '<div class="msg" id="accMsg" role="status"></div>' +
         '<div class="acts"><button type="button" class="primary" data-act="acc-login">Entrar</button><button type="button" data-act="acc-signup">Crear cuenta</button></div>' +
-        '<button type="button" class="lnk" data-act="acc-forgot">Olvidé mi contraseña</button>';
+        '<button type="button" class="lnk" data-act="acc-forgot">Olvidé mi contraseña</button>' +
+        '<p class="legal">Al crear una cuenta aceptas los <a href="terminos.html">Términos</a> y la <a href="privacidad.html">Política de privacidad</a>.</p>';
     }
     h += '</div>';
     var keep = $('#accMail') ? [$('#accMail').value, ($('#accPass') || {}).value] : null;

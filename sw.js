@@ -2,7 +2,7 @@
    Siempre busca primero la versión nueva en internet; si no hay conexión, usa la última copia guardada.
    Solo toca archivos del propio juego (no Firebase ni fuentes de Google). */
 var CACHE = 'domino-bravo-v1';
-var SHELL = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
+var SHELL = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'privacidad.html', 'terminos.html'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
@@ -24,12 +24,12 @@ self.addEventListener('fetch', function (e) {
     fetch(r).then(function (res) {
       if (res && res.ok) {
         var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(nav ? './' : r, copy); });
+        caches.open(CACHE).then(function (c) { c.put(r, copy); });
       }
       return res;
     }).catch(function () {
-      return (nav ? caches.match('./') : caches.match(r, { ignoreSearch: true })).then(function (hit) {
-        return hit || Response.error();
+      return caches.match(r, { ignoreSearch: true }).then(function (hit) {
+        return hit || (nav ? caches.match('./') : null) || Response.error();
       });
     })
   );
