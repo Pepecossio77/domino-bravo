@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Domino Bravo</title>
+<meta name="description" content="Domino Bravo: dominó en parejas a 75 puntos, gratis, en el celular o la computadora. Canta pases, tranques y dominos, sube de rango y vence a las Leyendas.">
 <meta name="theme-color" content="#0d0c0b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1675,7 +1676,7 @@ if (typeof module !== 'undefined') module.exports = E;
       '<button type="button" data-act="go-ayuda">Cómo jugar</button>' +
       '<button type="button" data-act="sound">Sonido: ' + (SND.isOn() ? 'Sí' : 'No') + '</button>' +
       (FS.hidden() ? '' : '<button type="button" data-act="full">' + (FS.on() ? 'Salir de pantalla completa' : 'Pantalla completa') + '</button>') +
-      (INST.can() ? '<button type="button" data-act="install">Instalar app</button>' : '') + '</div>' + '<p class="legal"><a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>', !mid);
+      (INST.can() ? '<button type="button" data-act="install">Instalar app</button>' : '') + '</div>' + '<p class="legal"><a href="guia.html">Guía del juego</a> · <a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>', !mid);
   }
   function dismiss() { if (!G) showMenu(); else if (G.done) showMenu(); else closeModal(); }
 
@@ -2111,7 +2112,7 @@ if (typeof module !== 'undefined') module.exports = E;
       h += '<div class="who">' + (FB.user.email || FB.user.displayName || 'Cuenta') + '</div><p>' + (FB.state || '') + '</p>' +
         '<p class="note">Tu progreso (monedas, prestigio, rating, bots vencidos y emblemas) se guarda solo. Si entras desde otro celular o computador, verás lo mismo. Si dos aparatos tienen progreso distinto, se usa el que lleve más partidas jugadas.</p>' +
         '<div class="acts"><button type="button" data-act="acc-save">Guardar ahora</button><button type="button" data-act="acc-out">Salir</button></div>' +
-        '<p class="legal"><a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>';
+        '<p class="legal"><a href="guia.html">Guía del juego</a> · <a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>';
     } else {
       h += '<p>Puedes jugar sin cuenta. Con cuenta, tu progreso queda en la nube y lo recuperas en cualquier celular o computador.</p>' +
         '<button type="button" class="gbtn" data-act="acc-google">Entrar con Google</button>' +
