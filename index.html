@@ -1070,9 +1070,9 @@ if (typeof module !== 'undefined') module.exports = E;
   }
 
   /* Monedas (decisión de Pepe, 15 nov): se empieza con 500. Quien ya jugaba recibe 500 una sola vez (P.gift).
-     Premio diario: por la primera partida terminada del día, 50 monedas; sube 10 por cada día seguido hasta 100. Si se falta un día, vuelve a 50. */
+     Premio diario: por la primera partida terminada del día, 50 monedas; sube cada día seguido (50, 60, 70, 80, 85, 90) y el día 7 llega a 100. Si se falta un día, vuelve a 50. */
   var START_COINS = 500, GIFTED = false;
-  function dailyBonus(streak) { return Math.min(100, 50 + 10 * (Math.max(1, streak) - 1)); }
+  function dailyBonus(streak) { return [50, 60, 70, 80, 85, 90, 100][Math.min(7, Math.max(1, streak)) - 1]; }
 
   function defP() {
     var bp = {};
