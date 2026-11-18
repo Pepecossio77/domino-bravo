@@ -46,7 +46,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,.ghost:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 h2,h3,p{margin:0}
 
-#app{height:100%;height:100dvh;display:grid;grid-template-columns:208px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+#app{height:100%;height:100dvh;display:grid;grid-template-columns:244px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 #side{display:flex;flex-direction:column;gap:4px;padding:18px 12px;background:rgba(0,0,0,.28);min-width:0;min-height:0;overflow-y:auto}
 .brand{font-family:var(--display);font-size:26px;letter-spacing:.5px;padding:0 8px 2px;color:var(--accent)}
 .brand .ico{width:1.05em;height:1.05em;vertical-align:-.15em;margin-right:.3em}
@@ -57,6 +57,10 @@ h2,h3,p{margin:0}
 #side button.on{background:rgba(255,255,255,.12)}
 #side button[hidden]{display:none}
 #side button:disabled{color:var(--muted);cursor:default}
+#side .ml,.menu .ml{display:flex;align-items:center;gap:10px;min-width:0}
+.mi{width:22px;height:22px;flex:none}
+#side .mi{width:20px;height:20px;opacity:.85}
+#side .ml span{white-space:nowrap}
 #side em{font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid currentColor;border-radius:99px;padding:1px 7px}
 .wallet{margin-top:auto;display:grid;grid-template-columns:1fr;gap:8px;padding:8px}
 .wallet div{background:rgba(0,0,0,.3);border-radius:10px;padding:8px 10px}
@@ -124,7 +128,12 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 #seat3 .bubble{left:92%;top:30%} #seat1 .bubble{right:92%;top:30%}
 
 #me{display:grid;grid-template-columns:minmax(120px,auto) minmax(0,1fr) minmax(120px,auto);align-items:center;gap:12px}
-#meInfo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#meInfo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;border-radius:12px;padding:2px 6px 2px 2px;margin-left:-2px}
+#meInfo:hover{background:rgba(255,255,255,.06)}
+.youp{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:99px;background:rgba(255,255,255,.12);color:var(--accent)} .youp svg{width:15px;height:15px}
+.yo{display:flex;align-items:center;gap:14px} .yo .av{width:64px;height:64px;flex:none} .yo h2{margin:0} .yo p{margin:2px 0 0;color:var(--muted)}
+.yostats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px} .yostats div{background:rgba(0,0,0,.25);border-radius:12px;padding:10px;text-align:center}
+.yostats b{display:block;font-size:22px} .yostats span{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 #hand{display:flex;justify-content:center;gap:6px;min-height:84px;align-items:flex-end}
 .htile{background:none;border:0;padding:0;width:clamp(36px,min(10.5vw,8.4vh),56px);border-radius:8px;transition:transform .14s;filter:drop-shadow(0 4px 4px rgba(0,0,0,.45))}
 .htile svg{display:block;width:100%}
@@ -291,6 +300,15 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 #actions #badges{display:flex;gap:5px;justify-content:flex-end;border:0;background:none;padding:0}
 #flash{position:absolute;inset:0;background:rgba(200,215,255,.38);opacity:0;pointer-events:none}
 #flash.go{animation:rayo .8s ease-out}
+/* ¡COMBO! cuando pasan los tres (17 nov) */
+#combo{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:45;pointer-events:none;text-align:center;opacity:0}
+#combo b{display:block;font-family:Impact,'Arial Black',system-ui,sans-serif;font-weight:900;font-style:italic;font-size:clamp(52px,16vw,120px);letter-spacing:.02em;line-height:1;color:#ffd23a;
+  -webkit-text-stroke:3px #7a1406;text-shadow:0 5px 0 #b01606,0 10px 22px rgba(0,0,0,.6)}
+#combo small{display:block;margin-top:6px;font-weight:800;font-size:clamp(16px,4.5vw,24px);color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+#combo.go{animation:combo 1.5s cubic-bezier(.2,.9,.3,1.2) 1}
+@keyframes combo{0%{opacity:0;transform:translate(-50%,-50%) scale(2.6) rotate(-8deg)}14%{opacity:1;transform:translate(-50%,-50%) scale(.9) rotate(-4deg)}22%{transform:translate(-50%,-50%) scale(1.06) rotate(-4deg)}
+  30%,40%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}34%{transform:translate(calc(-50% + 6px),-50%) scale(1) rotate(-4deg)}37%{transform:translate(calc(-50% - 6px),-50%) scale(1) rotate(-4deg)}
+  78%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-4deg)}100%{opacity:0;transform:translate(-50%,-60%) scale(1.15) rotate(-4deg)}}
 @keyframes rayo{0%{opacity:0}6%{opacity:1}18%{opacity:.1}30%{opacity:.75}100%{opacity:0}}
 body.dev::after{content:'MODO PRUEBAS';position:fixed;left:8px;bottom:3px;font:700 10px/1 sans-serif;letter-spacing:.12em;color:#ffb300;opacity:.85;z-index:60;pointer-events:none}
 #btnMenu{display:none;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);border-radius:9px;padding:3px 10px;font-weight:700;font-size:14px}
@@ -306,6 +324,7 @@ body.dev::after{content:'MODO PRUEBAS';position:fixed;left:8px;bottom:3px;font:7
   .brand{font-size:20px;padding:0} .brand small{display:none}
   #side nav{flex-direction:row;margin:0;overflow-x:auto;flex:1;min-width:0}
   #side button{font-size:15px;padding:6px 8px;white-space:nowrap} #side button:disabled,#side button.on{display:none}
+  #side .ml{gap:6px} #side .mi{width:16px;height:16px}
   .wallet .lv,.wallet .pr b{display:none}
   .wallet{margin:0;padding:0;display:flex;gap:6px} .wallet div{padding:3px 8px} .wallet b{font-size:16px;display:inline;margin-right:5px} .wallet span{font-size:10px}
   main{padding:6px 8px 10px;gap:6px} #top{padding:0 4px}
@@ -418,6 +437,7 @@ body[data-mesa="micaela"] #scene{background:radial-gradient(110% 95% at 50% 42%,
       <button type="button" data-nav="ayuda">Cómo jugar</button>
       <button type="button" data-nav="cuenta" id="btnAcc">Cuenta <em id="accEm">Entrar</em></button>
       <button type="button" data-nav="sound" id="btnSnd">Sonido <em id="sndEm">Sí</em></button>
+      <button type="button" data-nav="golpe" id="btnGolpe" title="Golpe al pasar">Golpe <em id="golpeEm">Fighter</em></button>
       <button type="button" data-nav="full" id="btnFs">Pantalla completa</button>
       <button type="button" data-nav="install" id="btnInst" hidden>Instalar app</button>
     </nav>
@@ -1287,6 +1307,7 @@ if (typeof module !== 'undefined') module.exports = E;
     moves.forEach(function (m) { ok[m.i] = true; });
     $('#meInfo').innerHTML = '<span class="av' + (mine ? ' on' : '') + '">' + avatar(0) + '</span>' +
       '<div class="who"><b>' + myName() + (P.laps > 0 ? '<span class="emb" title="Emblema ' + EMBL[P.laps - 1][0] + '">' + bullSVG(P.laps) + '</span>' : '') + '</b><small>' + rankOf(P.prestige) + ' · ' + P.prestige + '</small></div>' +
+      '<span class="youp" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span>' +
       (isCalled(0) ? '<span class="flag">Te cantaron pase</span>' : '') +
       (betOf(0) ? '<span class="flag">Cantaste ' + betOf(0) + '</span>' : '') +
       (G.mp ? mpFlags(0) : '') +
@@ -1502,18 +1523,37 @@ if (typeof module !== 'undefined') module.exports = E;
     else say(lastMsg + 'Juega ' + nm(p) + '.');
     timer = setTimeout(function () { botTurn(p); }, 1900);
   }
-  var comboSt = 0;
+  var comboSt = 0, passRun = 0;
+  /* Golpes al pasar: cada pase suena con 2 golpes; si tras una jugada pasan los tres, el tercero es un combo de 3 golpes */
+  function passHit() {
+    passRun++;
+    if (passRun === 3) { SND.golpes(3); comboShow(G.lastBy); } else SND.golpes(2);
+  }
+  /* Cambia entre Fighter y Mesa y suena una muestra: un pase (2 golpes) y luego el combo (3 golpes) */
+  var golpeT = null;
+  function golpeCycle() {
+    SND.setGolpe(SND.golpeStyle() === 'mesa' ? 'fighter' : 'mesa'); SND.label();
+    clearTimeout(golpeT); SND.golpes(2, true);
+    golpeT = setTimeout(function () { SND.golpes(3, true); comboShow(0); }, 950);
+    toast('Golpe al pasar: ' + golpeName() + '. Escucha un pase y luego el combo.');
+  }
+  function comboShow(by) {
+    var el = $('#combo');
+    if (!el) { el = document.createElement('div'); el.id = 'combo'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); }
+    el.innerHTML = '<b>¡COMBO!</b>' + (by != null && by !== 0 ? '<small>de ' + nm(by) + '</small>' : '');
+    el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+  }
   function botTurn(p) {
     if (G.mp) { mpBot(p); return; }
     var H = G.H, bb = BOTS[G.seats[p]], m = E.botMove(H, p, null, bb.level, bb.style), ev;
     if (!m) {
-      ev = E.passTurn(H, p); bubble(p, 'Paso'); lastMsg = nm(p) + ' pasó. ';
+      ev = E.passTurn(H, p); bubble(p, 'Paso'); lastMsg = nm(p) + ' pasó. '; passHit();
       if (comboSt && p === comboSt) {
         comboSt++;
         if (comboSt === 4) { comboSt = 0; P.combos++; toast('Combo: después de tu jugada pasaron los tres.', 'good'); evalEmblems(); saveP(); }
       } else comboSt = 0;
     } else {
-      comboSt = 0;
+      comboSt = 0; passRun = 0;
       var t = H.hands[p][m.i];
       lastMsg = nm(p) + ' puso el ' + t[0] + '-' + t[1] + '. ';
       var says = [];
@@ -1532,7 +1572,7 @@ if (typeof module !== 'undefined') module.exports = E;
     var H = G.H;
     if (G.mp) { mpPlay(i, side); return; }
     var ev = E.playTile(H, 0, i, side, callTarget, waitArm);
-    comboSt = 1;
+    comboSt = 1; passRun = 0;
     G.lastKey = keyOf(side); G.lastBy = 0; lastMsg = '';
     sel = null; callTarget = null; callMode = false; betOpen = false; waitArm = false;
     applyEvents(ev);
@@ -1544,7 +1584,7 @@ if (typeof module !== 'undefined') module.exports = E;
     if (H.over || H.turn !== 0 || E.canPlay(H, 0)) return;
     if (G.mp) { if (!MP.pending && !MP.auto) mpSend({ t: 'pass', s: MP.k }); return; }
     var ev = E.passTurn(H, 0);
-    comboSt = 0;
+    comboSt = 0; passHit();
     callTarget = null; callMode = false; waitArm = false; sel = null; lastMsg = 'Pasaste. ';
     toast('No tenías ficha: pasaste.');
     applyEvents(ev);
@@ -1555,7 +1595,7 @@ if (typeof module !== 'undefined') module.exports = E;
     G.handNo++;
     G.H = E.newHand(first ? 0 : (prev.starter + 1) % 4, first);
     G.lastKey = null; flyKey = null; lastRect = null; lastMsg = ''; sel = null; callTarget = null; callMode = false;
-    betOpen = false; waitArm = false; peekOn = false; resultMemo = null; comboSt = 0; curL = null;
+    betOpen = false; waitArm = false; peekOn = false; resultMemo = null; comboSt = 0; passRun = 0; curL = null;
     closeModal();
     step();
   }
@@ -1700,22 +1740,61 @@ if (typeof module !== 'undefined') module.exports = E;
         hint + '<span class="faces">' + faces + '</span></button>';
     }).join('') + '</div><p class="note">Elegir un nivel empieza una partida nueva.</p><div class="acts">' + (G ? '' : '<button type="button" data-act="menu">Volver al menú</button>') + '<button type="button" data-act="go-cuenta">Cuenta ' + (FB && FB.user ? '· ' + (FB.user.email || 'lista') : '· guardar en la nube') + '</button></div>', false);
   }
+  /* Íconos del menú (17 nov): geométricos, de línea, mismo grosor; toman el color del texto */
+  function ico(n) {
+    var I = {
+      bots: '<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="13" r="1.3" fill="currentColor"/><circle cx="15" cy="13" r="1.3" fill="currentColor"/><path d="M9.5 16.5h5M2 12.5v3M22 12.5v3"/>',
+      online: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',
+      amigos: '<circle cx="8.5" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="16.5" cy="9" r="2.6"/><path d="M15.5 14.2c3.4-.6 6 1.6 6 5.8"/>',
+      torneos: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4c0 3 1.3 4.5 3.3 4.8M17 6h3c0 3-1.3 4.5-3.3 4.8M12 14v3.5M8 21h8M9.5 17.5h5V21h-5z"/>',
+      mesas: '<rect x="3" y="7" width="18" height="5" rx="1.5"/><path d="M6 12v8M18 12v8M9 12v3h6v-3"/>',
+      perfil: '<circle cx="12" cy="8.5" r="4"/><path d="M4 21c0-4.4 3.6-7.5 8-7.5s8 3.1 8 7.5"/>',
+      ayuda: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M7 12h10"/><circle cx="12" cy="7.2" r="1.2" fill="currentColor"/><circle cx="10" cy="15" r="1.1" fill="currentColor"/><circle cx="14" cy="18.6" r="1.1" fill="currentColor"/>',
+      cuenta: '<path d="M7 18.5h10.5a4 4 0 0 0 .6-8A6 6 0 0 0 6.6 9.2 4.7 4.7 0 0 0 7 18.5z"/><path d="M12 16.5v-6M9.5 13 12 10.5 14.5 13"/>',
+      sound: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.3 6.5a8 8 0 0 1 0 11"/>',
+      golpe: '<path d="M12 2.5l1.9 5.4 5.2-2.4-2.3 5.2 5.2 1.8-5.2 1.9 2.3 5.2-5.2-2.4L12 22.5l-1.9-5.3-5.2 2.4 2.3-5.2-5.2-1.9 5.2-1.8-2.3-5.2 5.2 2.4z"/><circle cx="12" cy="12.4" r="2.2"/>',
+      full: '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>',
+      install: '<path d="M12 3.5v11M7.5 10 12 14.5 16.5 10"/><path d="M4.5 16v3.5h15V16"/>',
+      seguir: '<path d="M8 5.5v13l10.5-6.5z"/>',
+      cambiar: '<path d="M4 8h13M14 4.5 17.5 8 14 11.5M20 16H7M10 12.5 6.5 16 10 19.5"/>',
+      salir: '<path d="M14 4.5H6.5v15H14"/><path d="M10.5 12H21M17.5 8.5 21 12l-3.5 3.5"/>'
+    };
+    return '<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (I[n] || '') + '</svg>';
+  }
+  /* Botón de menú con ícono: [ícono + texto] a la izquierda y la etiqueta (Nuevo, Pronto...) a la derecha */
+  function mb(icon, text, attrs, tag) {
+    return '<button type="button" ' + attrs + '><span class="ml">' + ico(icon) + '<span>' + text + '</span></span>' + (tag ? '<em>' + tag + '</em>' : '') + '</button>';
+  }
+  function golpeName() { return SND.golpeStyle() === 'mesa' ? 'Mesa' : 'Fighter'; }
+  /* Pone el ícono a cada botón del menú lateral (el texto que trae el HTML se conserva) */
+  function decoSide(b) {
+    var map = { play: 'bots', amigos: 'amigos', mesas: 'mesas', perfil: 'perfil', ayuda: 'ayuda', cuenta: 'cuenta', sound: 'sound', golpe: 'golpe', full: 'full', install: 'install' };
+    (b ? [b] : Array.prototype.slice.call(document.querySelectorAll('#side nav button'))).forEach(function (x) {
+      var old = x.querySelector('.ml'); if (old) { var tx = old.querySelector('span'); old.replaceWith(document.createTextNode(tx ? tx.textContent : '')); }
+      var name = map[x.dataset.nav] || (/línea/i.test(x.textContent) ? 'online' : /torneo/i.test(x.textContent) ? 'torneos' : '');
+      var em = x.querySelector('em'), txt = '';
+      Array.prototype.slice.call(x.childNodes).forEach(function (c) { if (c !== em) { txt += c.textContent; c.remove(); } });
+      var w = document.createElement('span'); w.className = 'ml'; w.innerHTML = ico(name) + '<span></span>'; w.lastChild.textContent = txt.trim();
+      x.insertBefore(w, em || null);
+    });
+  }
   function showMenu() {
     var mid = !!G && !G.done;
     openModal('<p class="eyebrow">Menú</p><h2>' + (mid ? 'Partida en curso' : '¿Qué quieres jugar?') + '</h2><div class="menu">' +
-      (mid ? '<button type="button" class="primary" data-act="close">Seguir jugando</button>' :
-        '<button type="button" class="primary" data-act="levels">Jugar con bots</button>') +
-      (mid && G.mp ? '<button type="button" data-act="mp-leave">Salir de la mesa de amigos</button>' : mid ? '<button type="button" data-act="levels">Cambiar de rivales</button>' : '') +
-      '<button type="button" disabled>En línea <em>Pronto</em></button>' +
-      '<button type="button" data-act="go-amigos">Con amigos <em>' + (MP ? 'Mesa ' + MP.code : 'Nuevo') + '</em></button>' +
-      '<button type="button" disabled>Torneos <em>Pronto</em></button>' +
-      '<button type="button" data-act="go-mesas">Mesas</button>' +
-      '<button type="button" data-act="go-perfil">Perfil</button>' +
-      '<button type="button" data-act="go-cuenta">Cuenta <em>' + (FB && FB.user ? 'Listo' : 'Entrar') + '</em></button>' +
-      '<button type="button" data-act="go-ayuda">Cómo jugar</button>' +
-      '<button type="button" data-act="sound">Sonido: ' + (SND.isOn() ? 'Sí' : 'No') + '</button>' +
-      (FS.hidden() ? '' : '<button type="button" data-act="full">' + (FS.on() ? 'Salir de pantalla completa' : 'Pantalla completa') + '</button>') +
-      (INST.can() ? '<button type="button" data-act="install">Instalar app</button>' : '') + '</div>' + '<p class="legal"><a href="guia.html">Guía del juego</a> · <a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>', !mid);
+      (mid ? mb('seguir', 'Seguir jugando', 'class="primary" data-act="close"') :
+        mb('bots', 'Jugar con bots', 'class="primary" data-act="levels"')) +
+      (mid && G.mp ? mb('salir', 'Salir de la mesa de amigos', 'data-act="mp-leave"') : mid ? mb('cambiar', 'Cambiar de rivales', 'data-act="levels"') : '') +
+      mb('online', 'En línea', 'disabled', 'Pronto') +
+      mb('amigos', 'Con amigos', 'data-act="go-amigos"', MP ? 'Mesa ' + MP.code : 'Nuevo') +
+      mb('torneos', 'Torneos', 'disabled', 'Pronto') +
+      mb('mesas', 'Mesas', 'data-act="go-mesas"') +
+      mb('perfil', 'Perfil', 'data-act="go-perfil"') +
+      mb('cuenta', 'Cuenta', 'data-act="go-cuenta"', FB && FB.user ? 'Listo' : 'Entrar') +
+      mb('ayuda', 'Cómo jugar', 'data-act="go-ayuda"') +
+      mb('sound', 'Sonido', 'data-act="sound"', SND.isOn() ? 'Sí' : 'No') +
+      (SND.isOn() ? mb('golpe', 'Golpe al pasar', 'data-act="golpe"', golpeName()) : '') +
+      (FS.hidden() ? '' : mb('full', FS.on() ? 'Salir de pantalla completa' : 'Pantalla completa', 'data-act="full"')) +
+      (INST.can() ? mb('install', 'Instalar app', 'data-act="install"') : '') + '</div>' + '<p class="legal"><a href="guia.html">Guía del juego</a> · <a href="privacidad.html">Privacidad</a> · <a href="terminos.html">Términos</a></p>', !mid);
   }
   function dismiss() { if (!G) showMenu(); else if (G.done) showMenu(); else closeModal(); }
 
@@ -1743,6 +1822,15 @@ if (typeof module !== 'undefined') module.exports = E;
     var own = EM.filter(function (a) { return emHas(a.id); }).length;
     return '<div class="embsum"><div class="bdgrow">' + $('#badges').innerHTML + '</div><div><p>' + own + ' de ' + EM.length + ' emblemas ganados.</p>' +
       '<button type="button" data-act="go-emb">Ver todos y elegir 3</button></div></div>';
+  }
+  /* Tu ficha en la mesa (17 nov): se abre tocando tu avatar y tu nombre abajo. Útil en vertical, donde no cabe todo. */
+  function showYo() {
+    var pl = plOf(P.rating);
+    openModal('<p class="eyebrow">Tú en la mesa</p><div class="yo"><span class="av">' + avatar(0) + '</span><div><h2>' + myName() + '</h2>' +
+      '<p>' + rankOf(P.prestige) + ' · ' + P.prestige + ' de prestigio</p></div></div>' +
+      '<div class="yostats"><div><b>' + P.coins.toLocaleString('es') + '</b><span>Monedas</span></div><div><b>' + P.rating + '</b><span>Rating · ' + pl[1] + '</span></div>' +
+      '<div><b>' + P.prestige + '</b><span>Prestigio</span></div></div>' + emblemSummary() +
+      '<div class="acts"><button type="button" data-act="go-perfil">Perfil completo</button><button type="button" class="primary" data-act="close">Seguir jugando</button></div>');
   }
   function showEmblemas() {
     var sh = shownIds();
@@ -1918,6 +2006,7 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'peek') { peekOn = true; closeModal(); say('Mesa de la mano ' + G.handNo + ': las fichas de todos están a la vista.'); renderAll(); }
     else if (a === 'menu') showMenu();
     else if (a === 'sound') { SND.toggle(); showMenu(); }
+    else if (a === 'golpe') { golpeCycle(); showMenu(); }
     else if (a === 'full') { FS.toggle(); }
     else if (a === 'install') { INST.go(); }
     else if (a === 'go-mesas') showMesas();
@@ -1961,10 +2050,12 @@ if (typeof module !== 'undefined') module.exports = E;
       resetArm = false; clearTimeout(timer); var keepA = P.alias, keepV = P.av; P = defP(); P.seen = true; P.alias = keepA; if (lookInfo(keepV.look)[2] === 0) P.av = keepV; else P.av = { skin: keepV.skin, look: 'me', shirt: keepV.shirt }; saveP(); applyMesa(P.mesa); G = null; saveG(); showMenu();
     }
   });
+  decoSide();
   $('#side').addEventListener('click', function (e) {
     var b = e.target.closest('[data-nav]');
     if (!b) return;
     if (b.dataset.nav === 'sound') { SND.toggle(); return; }
+    if (b.dataset.nav === 'golpe') { golpeCycle(); return; }
     if (b.dataset.nav === 'full') { FS.toggle(); return; }
     if (b.dataset.nav === 'install') { INST.go(); return; }
     var locked = $('#modal').dataset.locked && !$('#modal').hidden;
@@ -1986,7 +2077,7 @@ if (typeof module !== 'undefined') module.exports = E;
     function hidden() { return standalone(); }
     function label() {
       var b = document.getElementById('btnFs'); if (!b) return;
-      b.hidden = hidden(); b.textContent = on() ? 'Salir de pantalla completa' : 'Pantalla completa';
+      b.hidden = hidden(); b.textContent = on() ? 'Salir de pantalla completa' : 'Pantalla completa'; decoSide(b);
     }
     function toggle() {
       if (on()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
@@ -2184,6 +2275,7 @@ if (typeof module !== 'undefined') module.exports = E;
   function openIfFree(fn) { if ($('#modal').hidden) fn(); }
   $('#btnMenu').addEventListener('click', function () { openIfFree(showMenu); });
   $('#badges').addEventListener('click', function () { openIfFree(showEmblemas); });
+  $('#meInfo').addEventListener('click', function (e) { if (e.target.closest('.flag')) return; openIfFree(showYo); });
   (function () {
     var c = 0, last = 0;
     $('.brand').addEventListener('click', function () {
@@ -2346,6 +2438,8 @@ if (typeof module !== 'undefined') module.exports = E;
   var SND = (function () {
     var ctx = null, master = null, fx = null, noiseBuf = null, bus = null, on = true, unlocked = false, cur = 'domingo', gen = 0, stops = [], timers = [];
     try { on = localStorage.getItem('domino-bravo-snd') !== '0'; } catch (e) {}
+    var golpe = 'fighter', crunchNode = null;
+    try { if (localStorage.getItem('domino-bravo-golpe') === 'mesa') golpe = 'mesa'; } catch (e) {}
     function init() {
       if (ctx) return true;
       var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
@@ -2585,6 +2679,7 @@ if (typeof module !== 'undefined') module.exports = E;
     }
     function label() {
       var e = document.getElementById('sndEm'); if (e) e.textContent = on ? 'Sí' : 'No';
+      var g = document.getElementById('btnGolpe'); if (g) { g.hidden = !on; var ge = document.getElementById('golpeEm'); if (ge) ge.textContent = golpe === 'mesa' ? 'Mesa' : 'Fighter'; }
     }
     function unlock() {
       if (!on) return;
@@ -2609,11 +2704,53 @@ if (typeof module !== 'undefined') module.exports = E;
       clack: function () {
         if (!ctx || !on || !unlocked) return;
         puff(0.05, 'bandpass', 2200, 1.2, 0.35, null, fx); tone(180, 0.06, 0.25, 'sine', null, fx, 90);
+      },
+      /* Golpes al pasar (idea de Pepe, 17 nov): 2 golpes por pase; 3 cuando pasan los tres seguidos (combo).
+         Dos estilos, ambos hechos desde cero: 'fighter' (puñetazo de juego de pelea de los 90) y 'mesa' (nudillos en madera). */
+      golpeStyle: function () { return golpe; },
+      setGolpe: function (s) { golpe = s === 'mesa' ? 'mesa' : 'fighter'; try { localStorage.setItem('domino-bravo-golpe', golpe); } catch (e) {} },
+      golpes: function (n, demo) {
+        if (!on) return;
+        if (demo) unlock();
+        if (!ctx || !unlocked) return;
+        if (ctx.state === 'suspended') ctx.resume();
+        var t = ctx.currentTime + 0.02, gap = golpe === 'mesa' ? 0.2 : 0.16;
+        for (var k = 0; k < n; k++) hit(t + k * gap, k === n - 1 && n >= 3 ? 1.5 : 1 + k * 0.12);
+        if (n >= 3 && golpe === 'fighter') { /* destello final del combo */
+          tone(1760, 0.5, 0.05, 'triangle', t + 2 * gap + 0.06, fx, 2640); tone(1320, 0.45, 0.04, 'triangle', t + 2 * gap + 0.09, fx, 1980);
+        }
       }
     };
+    function crunch() {
+      if (crunchNode) return crunchNode;
+      var w = ctx.createWaveShaper(), c = new Float32Array(1024);
+      for (var i = 0; i < 1024; i++) { var x = i / 512 - 1; c[i] = Math.tanh(x * 3.2); }
+      w.curve = c; w.connect(fx); crunchNode = w; return w;
+    }
+    /* Un golpe. big: 1 normal, 1.5 el último del combo (más grave, más largo) */
+    function hit(t, big) {
+      if (golpe === 'mesa') {
+        /* Nudillo sobre madera: chasquido corto + resonancia hueca de la tabla */
+        puff(0.04, 'bandpass', 1100, 2.5, 0.55 * big, t, fx);
+        tone(210 / (big > 1.2 ? 1.15 : 1), 0.14 * big, 0.38 * Math.min(big, 1.3), 'triangle', t, fx, 150);
+        tone(470, 0.07, 0.12, 'sine', t, fx, 380);
+        if (big > 1.2) puff(0.35, 'lowpass', 300, 0.8, 0.18, t + 0.02, fx);
+        return;
+      }
+      /* Fighter: golpe grave que cae de tono, saturado, con chasquido y un poco de eco */
+      var cr = crunch(), o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(170 * (big > 1.2 ? 0.85 : 1), t); o.frequency.exponentialRampToValueAtTime(42, t + 0.22 * big);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.75 * Math.min(big, 1.25), t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.26 * big);
+      o.connect(g); g.connect(cr); o.start(t); o.stop(t + 0.3 * big + 0.05);
+      puff(0.07, 'bandpass', 1500, 0.9, 0.6 * big, t, cr);
+      puff(0.03, 'highpass', 3500, 0.7, 0.25, t, fx);
+      if (big > 1.2) { puff(0.5, 'lowpass', 500, 0.7, 0.22, t + 0.03, fx); puff(0.25, 'bandpass', 1500, 0.9, 0.18, t + 0.12, cr); }
+      else puff(0.12, 'bandpass', 1400, 0.9, 0.12, t + 0.09, cr);
+    }
   })();
 
   /* ---------- Arranque ---------- */
+  SND.label();
   /* ---------- Con amigos: mesa privada por código o link (16 de noviembre) ----------
      Cómo funciona, en simple:
      - El anfitrión crea una mesa (código de 5 letras) en la base de datos en tiempo real de Firebase: rooms/{código}.
@@ -2897,7 +3034,7 @@ if (typeof module !== 'undefined') module.exports = E;
       Hc.turn = Hc.starter = loc(Hc.starter);
       G.handNo++; G.H = Hc; G.lastKey = null;
       flyKey = null; lastRect = null; lastMsg = ''; sel = null; callTarget = null; callMode = false;
-      betOpen = false; waitArm = false; peekOn = false; resultMemo = null; comboSt = 0; curL = null;
+      betOpen = false; waitArm = false; peekOn = false; resultMemo = null; comboSt = 0; passRun = 0; curL = null;
       clearTimeout(MP.nT);
       if (!fast) { closeModal(); step(); }
       return true;
@@ -2908,9 +3045,10 @@ if (typeof module !== 'undefined') module.exports = E;
     if (a.t === 'pass') {
       if (E.canPlay(H, p)) return false;
       ev = E.passTurn(H, p);
-      if (fast) return true;
+      if (fast) { passRun++; return true; }
       if (p === 0) { callTarget = null; callMode = false; waitArm = false; sel = null; lastMsg = 'Pasaste. '; toast('No tenías ficha: pasaste.'); }
       else { bubble(p, 'Paso'); lastMsg = nm(p) + ' pasó. '; }
+      passHit();
       applyEvents(ev); step();
       return true;
     }
@@ -2919,7 +3057,7 @@ if (typeof module !== 'undefined') module.exports = E;
     var t = H.hands[p][a.i], call = a.call == null ? null : loc(a.call), says = [];
     var betOk = a.bet ? E.declareBet(H, p, a.bet) : false;
     ev = E.playTile(H, p, a.i, a.side, call, !!a.wait);
-    G.lastKey = keyOf(a.side); G.lastBy = p;
+    G.lastKey = keyOf(a.side); G.lastBy = p; passRun = 0;
     if (fast) return true;
     if (p === 0) { lastMsg = ''; sel = null; callTarget = null; callMode = false; betOpen = false; waitArm = false; }
     else {
