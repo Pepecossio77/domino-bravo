@@ -279,6 +279,13 @@ main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:12
 .acc{display:grid;gap:10px}
 .acc label{display:grid;gap:4px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .acc input{font:inherit;font-size:17px;letter-spacing:0;text-transform:none;color:var(--ink);background:rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.3);border-radius:10px;padding:10px 12px;width:100%}
+.acc .pw{position:relative;display:block} .acc .pw input{padding-right:48px}
+.acc .eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--muted);border-radius:8px}
+.acc .eye svg{width:22px;height:22px} .acc .eye.on{color:var(--accent)} .acc .eye:not(.on) .slash{display:none}
+.mid b{display:inline-block;vertical-align:middle}
+.exitb{display:inline-flex;vertical-align:middle;align-items:center;gap:4px;margin-left:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.2);border-radius:99px;padding:2px 10px 2px 7px;font-size:12px;font-weight:700;letter-spacing:.04em}
+.exitb .mi{width:14px;height:14px} .exitb:hover{background:rgba(255,255,255,.1)}
+.mid span{display:block}
 .acc input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
 .acc .gbtn{border:2px solid rgba(255,255,255,.4);background:#fff;color:#1d1a16;border-radius:10px;padding:11px 14px;font-weight:700;font-size:17px}
 .acc .msg{min-height:20px;font-size:14px;color:var(--them)} .acc .msg.ok{color:var(--us)}
@@ -340,6 +347,7 @@ body.dev::after{content:'MODO PRUEBAS';position:fixed;left:8px;bottom:3px;font:7
 }
 @media (max-width:430px) and (orientation:portrait){
   #side{flex-wrap:wrap;row-gap:2px;padding:6px 16px 4px}
+  .exitb{padding:3px 5px;margin-left:6px} .exitb .xt{display:none} .exitb .mi{width:16px;height:16px}
   #side nav{order:3;flex:1 1 100%;gap:2px}
   #side button{padding:4px 8px;font-size:14px}
 }
@@ -1265,7 +1273,8 @@ if (typeof module !== 'undefined') module.exports = E;
         '<i><u style="width:' + Math.min(100, Math.round(v / META * 100)) + '%"></u></i></div>';
     }
     $('#score').innerHTML = cell('us', 'Nosotros', s[0]) +
-      '<div class="mid"><b>Mano ' + G.handNo + '</b><span>' + (G.mp ? 'Con amigos' : lvOf(G.level).name) + ' · a ' + META + '</span></div>' +
+      '<div class="mid"><b>Mano ' + G.handNo + '</b>' + (G.done ? '' : '<button type="button" class="exitb" aria-label="Salir de la partida">' + ico('salir') + '<span class="xt">Salir</span></button>') +
+      '<span>' + (G.mp ? 'Con amigos' : lvOf(G.level).name) + ' · a ' + META + '</span></div>' +
       cell('them', 'Ellos', s[1]);
     $('#coins').textContent = P.coins;
     $('#prest').textContent = P.prestige;
@@ -1740,6 +1749,27 @@ if (typeof module !== 'undefined') module.exports = E;
         hint + '<span class="faces">' + faces + '</span></button>';
     }).join('') + '</div><p class="note">Elegir un nivel empieza una partida nueva.</p><div class="acts">' + (G ? '' : '<button type="button" data-act="menu">Volver al menú</button>') + '<button type="button" data-act="go-cuenta">Cuenta ' + (FB && FB.user ? '· ' + (FB.user.email || 'lista') : '· guardar en la nube') + '</button></div>', false);
   }
+  /* Salir de la partida (idea de Pepe, 17 nov): siempre con aviso de lo que se pierde */
+  function showSalir() {
+    if (!G || G.done) { showMenu(); return; }
+    if (G.mp) {
+      openModal('<p class="eyebrow">Salir</p><h2>¿Salir de la mesa de amigos?</h2>' +
+        (MP && MP.host ? '<p>Eres quien creó la mesa: <b>al salir se cierra para todos</b>.</p>' : '<p>Si sales, un bot ocupa tu asiento y tus amigos pueden seguir jugando.</p>') +
+        '<div class="acts"><button type="button" data-act="mp-leave-now">' + (MP && MP.host ? 'Cerrar la mesa y salir' : 'Salir') + '</button><button type="button" class="primary" data-act="close">Seguir jugando</button></div>');
+      return;
+    }
+    openModal('<p class="eyebrow">Salir</p><h2>¿Salir de la partida?</h2>' +
+      '<p>Si sales ahora, la partida queda sin terminar: <b>no recibes monedas ni sube tu rating</b> por ella, aunque vayas ganando.</p>' +
+      '<p class="note">Cuando lleguen las mesas en línea con monedas, salir antes de terminar hará <b>perder la entrada</b>, vayas ganando o perdiendo.</p>' +
+      '<div class="acts"><button type="button" data-act="exit-go">Salir de la partida</button><button type="button" class="primary" data-act="close">Seguir jugando</button></div>');
+  }
+  function exitGame() {
+    clearTimeout(timer);
+    if (G.H) G.H.over = true;
+    G.done = true; saveG(); sel = null; callMode = false; betOpen = false; waitArm = false;
+    renderAll(); say('Saliste de la partida.');
+    showMenu();
+  }
   /* Íconos del menú (17 nov): geométricos, de línea, mismo grosor; toman el color del texto */
   function ico(n) {
     var I = {
@@ -1783,7 +1813,8 @@ if (typeof module !== 'undefined') module.exports = E;
     openModal('<p class="eyebrow">Menú</p><h2>' + (mid ? 'Partida en curso' : '¿Qué quieres jugar?') + '</h2><div class="menu">' +
       (mid ? mb('seguir', 'Seguir jugando', 'class="primary" data-act="close"') :
         mb('bots', 'Jugar con bots', 'class="primary" data-act="levels"')) +
-      (mid && G.mp ? mb('salir', 'Salir de la mesa de amigos', 'data-act="mp-leave"') : mid ? mb('cambiar', 'Cambiar de rivales', 'data-act="levels"') : '') +
+      (mid && !G.mp ? mb('cambiar', 'Cambiar de rivales', 'data-act="levels"') : '') +
+      (mid ? mb('salir', G.mp ? 'Salir de la mesa de amigos' : 'Salir de la partida', 'data-act="exit"') : '') +
       mb('online', 'En línea', 'disabled', 'Pronto') +
       mb('amigos', 'Con amigos', 'data-act="go-amigos"', MP ? 'Mesa ' + MP.code : 'Nuevo') +
       mb('torneos', 'Torneos', 'disabled', 'Pronto') +
@@ -2016,6 +2047,11 @@ if (typeof module !== 'undefined') module.exports = E;
     else if (a === 'go-cuenta') showCuenta();
     else if (a === 'acc-google') accGoogle();
     else if (a === 'acc-login') accEmail(false);
+    else if (a === 'exit') showSalir();
+    else if (a === 'exit-go') exitGame();
+    else if (a === 'acc-eye') {
+      var pw = $('#accPass'); if (pw) { var show = pw.type === 'password'; pw.type = show ? 'text' : 'password'; b.classList.toggle('on', show); b.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña'); pw.focus(); }
+    }
     else if (a === 'acc-signup') accEmail(true);
     else if (a === 'acc-forgot') accForgot();
     else if (a === 'acc-save') accSaveNow();
@@ -2254,7 +2290,9 @@ if (typeof module !== 'undefined') module.exports = E;
       h += '<p>Puedes jugar sin cuenta. Con cuenta, tu progreso queda en la nube y lo recuperas en cualquier celular o computador.</p>' +
         '<button type="button" class="gbtn" data-act="acc-google">Entrar con Google</button>' +
         '<label>Correo<input id="accMail" type="email" autocomplete="email" inputmode="email" autocapitalize="off"></label>' +
-        '<label>Contraseña<input id="accPass" type="password" autocomplete="current-password"></label>' +
+        '<label>Contraseña<span class="pw"><input id="accPass" type="password" autocomplete="current-password">' +
+        '<button type="button" class="eye" data-act="acc-eye" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="slash" d="M4 4l16 16"/></svg></button></span></label>' +
         '<div class="msg" id="accMsg" role="status"></div>' +
         '<div class="acts"><button type="button" class="primary" data-act="acc-login">Entrar</button><button type="button" data-act="acc-signup">Crear cuenta</button></div>' +
         '<button type="button" class="lnk" data-act="acc-forgot">Olvidé mi contraseña</button>' +
@@ -2274,6 +2312,7 @@ if (typeof module !== 'undefined') module.exports = E;
   setTimeout(fbLoad, 1200);
   function openIfFree(fn) { if ($('#modal').hidden) fn(); }
   $('#btnMenu').addEventListener('click', function () { openIfFree(showMenu); });
+  $('#top').addEventListener('click', function (e) { if (e.target.closest('.exitb')) openIfFree(showSalir); });
   $('#badges').addEventListener('click', function () { openIfFree(showEmblemas); });
   $('#meInfo').addEventListener('click', function (e) { if (e.target.closest('.flag')) return; openIfFree(showYo); });
   (function () {
@@ -2957,6 +2996,7 @@ if (typeof module !== 'undefined') module.exports = E;
     if (a === 'mp-join') { mpJoin(($('#mpCode') || {}).value); return; }
     if (!MP) return;
     var db = FB.m.db;
+    if (a === 'mp-leave-now') { closeModal(); mpLeave(); return; }
     if (a === 'mp-leave') {
       if (!b.dataset.arm) { b.dataset.arm = '1'; b.textContent = MP.host ? 'Toca otra vez: se cierra para todos' : 'Toca otra vez para salir'; return; }
       mpLeave();
