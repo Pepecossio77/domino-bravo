@@ -987,37 +987,44 @@ if (typeof module !== 'undefined') module.exports = E;
   'use strict';
   var $ = function (s) { return document.querySelector(s); };
   var BOTS = {
-    micaela: { name: 'Doña Micaela', level: 'leyenda', pr: 140, skin: '#8a5a3c', look: 'bun', shirt: '#c9a0dc' },
+    micaela: { name: 'Micaela', level: 'experto', pr: 140, skin: '#8a5a3c', look: 'bun', shirt: '#c9a0dc' },
     gollo: { name: 'Gollo', level: 'experto', pr: 105, skin: '#7a4a2e', look: 'grey', shirt: '#f4f1e8' },
     tito: { name: 'Tito', level: 'experto', pr: 120, skin: '#c08a5c', look: 'hat', shirt: '#ffffff' },
     berta: { name: 'Berta', level: 'medio', pr: 50, skin: '#d9a577', look: 'bob', shirt: '#f7c8d0' },
     gabo: { name: 'Gabo', level: 'medio', pr: 35, skin: '#f1cba6', look: 'blond', shirt: '#2f5d8a' },
     henry: { name: 'Henry', level: 'facil', pr: 15, skin: '#6b4028', look: 'glasses', shirt: '#dfe8d2' },
     daniel: { name: 'Daniel', level: 'facil', pr: 8, skin: '#f1cba6', look: 'bald', shirt: '#c8402f' },
-    pepe: { name: 'Dark Pepe', level: 'leyenda', pr: 405, skin: '#6b4028', look: 'bald', shirt: '#1d1a16' },
-    amed: { name: 'Evil Amed', level: 'leyenda', pr: 305, skin: '#6b4028', look: 'black', shirt: '#1d1a16' },
+    pepe: { name: 'Mr. Pepe', level: 'leyenda', pr: 405, skin: '#6b4028', look: 'bald', shirt: '#1d1a16' },
+    amed: { name: 'Kuzco', level: 'leyenda', pr: 305, skin: '#6b4028', look: 'black', shirt: '#1d1a16' },
     matu: { name: 'Tía Matu', level: 'leyenda', pr: 355, skin: '#d9a577', look: 'matu', shirt: '#8a4f7d' },
-    chela: { name: 'Chela', level: 'facil', pr: 12, skin: '#b9855c', look: 'long', shirt: '#e86a5a', style: { talk: 3 } },
-    rafa: { name: 'Don Rafa', level: 'facil', pr: 6, skin: '#e0b48a', look: 'cap', shirt: '#7aa05a', style: { sloppy: 0.2 } },
-    yeya: { name: 'Yeya', level: 'medio', pr: 55, skin: '#8a5a3c', look: 'wrap', shirt: '#e0a63a', style: { sure: true } },
+    dmica: { name: 'Doña Micaela', level: 'leyenda', pr: 400, skin: '#8a5a3c', look: 'dmica', shirt: '#5a2a6e' },
+    tgollo: { name: 'Tío Gollo', level: 'leyenda', pr: 330, skin: '#7a4a2e', look: 'tgollo', shirt: '#f4f1e8' },
+    rangu: { name: 'Ranguliao', level: 'leyenda', pr: 315, skin: '#4a2c1a', look: 'rangu', shirt: '#1d1a16' },
+    chalao: { name: 'Tío Chalao', level: 'leyenda', pr: 340, skin: '#5a3520', look: 'chalao', shirt: '#2f5d8a', big: true },
+    chela: { name: 'Mili', level: 'facil', pr: 12, skin: '#b9855c', look: 'long', shirt: '#e86a5a', style: { talk: 3 } },
+    rafa: { name: 'Moisés', level: 'facil', pr: 6, skin: '#e0b48a', look: 'capnos', shirt: '#7aa05a', style: { sloppy: 0.2 } },
+    yadi: { name: 'Yadi', level: 'facil', pr: 10, skin: '#d9a577', look: 'yadi', shirt: '#f7c8d0', style: { talk: 0.5 } },
+    yeya: { name: 'Gloria', level: 'medio', pr: 55, skin: '#8a5a3c', look: 'wrap', shirt: '#e0a63a', style: { sure: true } },
     cheo: { name: 'Cheo', level: 'medio', pr: 38, skin: '#6b4028', look: 'curly', shirt: '#f2b632', style: { talk: 2.5, trap: 0.15 } },
-    lucho: { name: 'Lucho', level: 'experto', pr: 130, skin: '#c08a5c', look: 'stache', shirt: '#2a7a6a', style: { callShift: -0.04, betShift: -0.04, trap: 0.38 } },
-    mari: { name: 'Mari', level: 'experto', pr: 150, skin: '#d9a577', look: 'bunglasses', shirt: '#3d4f8a', style: { callShift: 0.06, betShift: 0.05, trap: 0.65 } }
+    nino: { name: 'Nino', level: 'medio', pr: 45, skin: '#6b4028', look: 'nino', shirt: '#7aa05a', style: { trap: 0.3 } },
+    lucho: { name: 'Gena', level: 'experto', pr: 130, skin: '#6b4028', look: 'gena', shirt: '#2a7a6a', style: { callShift: -0.04, betShift: -0.04, trap: 0.38 } },
+    mari: { name: 'María', level: 'experto', pr: 150, skin: '#d9a577', look: 'bunglasses', shirt: '#3d4f8a', style: { callShift: 0.06, betShift: 0.05, trap: 0.65 } }
   };
   /* Cada bot de nivel experto o leyenda usa "Aquí te espero" según su carácter (umbral: qué tan seguro debe estar). */
   BOTS.micaela.style = { trap: 0.6 }; BOTS.gollo.style = { trap: 0.5 }; BOTS.tito.style = { trap: 0.45 };
   BOTS.pepe.style = { trap: 0.5 }; BOTS.amed.style = { trap: 0.5 }; BOTS.matu.style = { trap: 0.5 };
+  BOTS.dmica.style = { trap: 0.6 }; BOTS.tgollo.style = { trap: 0.5 }; BOTS.rangu.style = { trap: 0.4, callShift: -0.03 }; BOTS.chalao.style = { trap: 0.5 };
   /* Árbol de desbloqueo: los vecinos nuevos aparecen al vencer a los bots que se piden. */
   var BOT_REQ = {
-    chela: ['henry', 'daniel'], rafa: ['henry', 'daniel'],
-    yeya: ['berta', 'gabo'], cheo: ['berta', 'gabo'],
+    chela: ['henry', 'daniel'], rafa: ['henry', 'daniel'], yadi: ['henry', 'daniel'],
+    yeya: ['berta', 'gabo'], cheo: ['berta', 'gabo'], nino: ['berta', 'gabo'],
     lucho: ['micaela', 'gollo', 'tito'], mari: ['micaela', 'gollo', 'tito']
   };
   var LV = [
-    { id: 'facil', name: 'Fácil', bots: ['henry', 'daniel', 'chela', 'rafa'], mate: ['berta', 'gabo'], coins: 50, note: 'Para aprender la mesa. Se equivocan seguido.' },
-    { id: 'medio', name: 'Medio', bots: ['berta', 'gabo', 'yeya', 'cheo'], mate: ['micaela', 'gollo', 'tito'], coins: 100, note: 'Juegan de oficio, sin contar fichas.' },
-    { id: 'experto', name: 'Experto', bots: ['micaela', 'gollo', 'tito', 'lucho', 'mari'], mate: null, coins: 200, note: 'Nivel 9 de 10. Cuentan fichas y calculan la mano. Doña Micaela juega al nivel 10.' },
-    { id: 'leyenda', name: 'Leyendas', bots: ['pepe', 'amed', 'matu'], mate: ['micaela', 'gollo', 'tito'], coins: 500, note: 'Nivel 10 de 10. Los más fuertes del juego.' }
+    { id: 'facil', name: 'Fácil', bots: ['henry', 'daniel', 'chela', 'rafa', 'yadi'], mate: ['berta', 'gabo'], coins: 50, note: 'Para aprender la mesa. Se equivocan seguido.' },
+    { id: 'medio', name: 'Medio', bots: ['berta', 'gabo', 'yeya', 'cheo', 'nino'], mate: ['micaela', 'gollo', 'tito'], coins: 100, note: 'Juegan de oficio, sin contar fichas.' },
+    { id: 'experto', name: 'Experto', bots: ['micaela', 'gollo', 'tito', 'lucho', 'mari'], mate: null, coins: 200, note: 'Nivel 9 de 10. Cuentan fichas y calculan la mano.' },
+    { id: 'leyenda', name: 'Leyendas', bots: ['pepe', 'amed', 'matu', 'dmica', 'tgollo', 'rangu', 'chalao'], mate: ['micaela', 'gollo', 'tito'], coins: 500, note: 'Nivel 10 de 10. Los más fuertes del juego.' }
   ];
   var BASE7 = ['henry', 'daniel', 'berta', 'gabo', 'micaela', 'gollo', 'tito'];
   function lvOf(id) { return LV.filter(function (x) { return x.id === id; })[0] || LV[0]; }
@@ -1116,9 +1123,9 @@ if (typeof module !== 'undefined') module.exports = E;
     { id: 'supercombo', name: 'Super Combo', how: 'Pasa a todos por primera vez: después de tu jugada, pasan los tres.', g: 1, v: function () { return P.combos; }, art: bolts(1) },
     { id: 'killercombo', name: 'Killer Combo', how: 'Pasa a todos 20 veces.', g: 20, v: function () { return P.combos; }, art: bolts(2) },
     { id: 'combobravo', name: 'Combo Bravo', how: 'Pasa a todos 100 veces.', g: 100, v: function () { return P.combos; }, art: bolts(3) },
-    { id: 'micaela', name: 'Doña Micaela se rinde', how: 'Vence a Doña Micaela, a Gollo y a Tito.', g: 3, v: function () { return beatCount(['micaela', 'gollo', 'tito']); },
+    { id: 'micaela', name: 'Micaela se rinde', how: 'Vence a Micaela, a Gollo y a Tito.', g: 3, v: function () { return beatCount(['micaela', 'gollo', 'tito']); },
       art: '<path d="M6 19V10l4 4 2-6 2 6 4-4v9z"/>' },
-    { id: 'cazador', name: 'Cazador de Leyendas', how: 'Vence a Dark Pepe, a Evil Amed y a Tía Matu.', g: 3, v: function () { return beatCount(['pepe', 'amed', 'matu']); },
+    { id: 'cazador', name: 'Cazador de Leyendas', how: 'Vence a Mr. Pepe, a Kuzco y a Tía Matu.', g: 3, v: function () { return beatCount(['pepe', 'amed', 'matu']); },
       art: '<circle cx="12" cy="14" r="5" ' + ST + '/><path d="M12 6v5M12 17v5M4 14h5M15 14h5" ' + ST + '/>' },
     { id: 'gira', name: 'Gira de mesas', how: 'Gana al menos una partida en cada mesa.', g: MESAS.length, v: function () { return MESAS.filter(function (m) { return P.mw[m.id]; }).length; },
       art: '<circle cx="12" cy="8.500" r="2"/><circle cx="12" cy="19.500" r="2"/><circle cx="6.500" cy="14" r="2"/><circle cx="17.500" cy="14" r="2"/>' },
@@ -1322,13 +1329,30 @@ if (typeof module !== 'undefined') module.exports = E;
     wrap: '<path d="M11.500 16.500a8.500 8.500 0 0 1 17 0c-3-1.500-5-2-8.500-2s-5.500.5-8.500 2z" fill="#c8402f"/><circle cx="20" cy="8.500" r="2.200" fill="#c8402f"/><circle cx="12.300" cy="21" r="1.200" fill="#f2b632"/><circle cx="27.700" cy="21" r="1.200" fill="#f2b632"/>',
     curly: '<path d="M10.500 17a9.500 9.500 0 0 1 19 0c-1.500-3-5-4.500-9.500-4.500S12 14 10.500 17z" fill="#141110"/><circle cx="13" cy="10.500" r="3.200" fill="#141110"/><circle cx="20" cy="8" r="3.600" fill="#141110"/><circle cx="27" cy="10.500" r="3.200" fill="#141110"/>',
     stache: '<path d="' + HAIR + '" fill="#141110"/><path d="M15.500 21.500q4.500-2.200 9 0" stroke="#141110" stroke-width="2.200" fill="none" stroke-linecap="round"/>',
+    /* Solo para bots (no salen en la tienda) */
+    capnos: '<path d="M11.500 15.500a8.500 8.500 0 0 1 17 0z" fill="#2f5d8a"/><rect x="11" y="14.500" width="18" height="2" rx="1" fill="#244a6e"/><path d="M26 15.500h7" stroke="#244a6e" stroke-width="2" stroke-linecap="round"/>',
+    yadi: '<path d="M11 31V16a9 9 0 0 1 18 0v15h-4V17c-3 0-6-1-8-3-1 2-2 3-4 3v14z" fill="#2b1d14"/><path d="M12.300 13.200q7.700-5.600 15.400 0" stroke="#e86a5a" stroke-width="1.700" fill="none" stroke-linecap="round"/><circle cx="26.600" cy="10.800" r="1.900" fill="#f2b632"/><circle cx="26.600" cy="10.800" r=".8" fill="#e86a5a"/>',
+    nino: '<path d="M15 12.500q2-1.500 4-1.500" stroke="rgba(255,255,255,.45)" stroke-width="1.200" fill="none" stroke-linecap="round"/><g fill="#141110"><circle cx="12.300" cy="15.200" r="1.900"/><circle cx="11.900" cy="18.400" r="1.900"/><circle cx="27.700" cy="15.200" r="1.900"/><circle cx="28.100" cy="18.400" r="1.900"/></g>',
+    gena: '<path d="M10.500 17a9.500 9.500 0 0 1 19 0c-1.500-3-5-4.500-9.500-4.500S12 14 10.500 17z" fill="#141110"/><circle cx="13" cy="10.500" r="3.200" fill="#141110"/><circle cx="20" cy="8" r="3.600" fill="#141110"/><circle cx="27" cy="10.500" r="3.200" fill="#141110"/>' +
+      '<path d="M11.600 17.500c0 7.500 3.600 12.500 8.400 12.500s8.400-5 8.400-12.500c-1.600 2.800-4 4.200-8.400 4.200s-6.800-1.400-8.400-4.200z" fill="#141110"/><g fill="#141110"><circle cx="13.200" cy="25.500" r="2.300"/><circle cx="26.800" cy="25.500" r="2.300"/><circle cx="20" cy="30" r="2.600"/></g><path d="M17.600 23.300q2.400 1.300 4.800 0" stroke="#a0603e" stroke-width="1.100" fill="none" stroke-linecap="round"/>',
+    rangu: '<path d="M11.500 15.500a8.500 8.500 0 0 1 17 0z" fill="#c8402f"/><rect x="11" y="14.500" width="18" height="2" rx="1" fill="#9a2f22"/><path d="M12 15.500H6" stroke="#9a2f22" stroke-width="2" stroke-linecap="round"/>' +
+      '<path d="M16.300 21.300q3.700 2.900 7.400 0z" fill="#f6f1e6"/><rect x="20.400" y="21.350" width="1.500" height="1.300" rx=".3" fill="#f2b632"/><circle cx="27.900" cy="19.800" r="1" fill="#f2b632"/><path d="M13.500 31q6.500 5.500 13 0" stroke="#f2b632" stroke-width="1.200" fill="none"/>',
+    chalao: '<path d="M10.600 17.200a9.400 9.400 0 0 1 18.800 0c-2.400-3.300-5.700-4.600-9.400-4.600s-7 1.300-9.400 4.600z" fill="#141110"/><path d="M16.500 22.200q3.500 2 7 0" stroke="#3a2010" stroke-width="1.100" fill="none" stroke-linecap="round"/>',
+    tgollo: '<path d="' + HAIR + '" fill="#cfcfcf"/><path d="M16 21.500q4 2.200 8 0" stroke="#e6e6e6" stroke-width="1.700" fill="none" stroke-linecap="round"/>' +
+      '<rect x="13.800" y="16" width="5.400" height="3.200" rx="1.300" fill="#141110"/><rect x="20.800" y="16" width="5.400" height="3.200" rx="1.300" fill="#141110"/><path d="M19.200 17h1.600" stroke="#141110" stroke-width="1"/><path d="M14 31q6 4.500 12 0" stroke="#f2b632" stroke-width="1.100" fill="none"/>',
+    dmica: '<circle cx="20" cy="7" r="4" fill="#e8e8e8"/><path d="' + HAIR + '" fill="#e8e8e8"/>' +
+      '<path d="M14 11.600l1.900-3.600 2.100 2.300 2-3.900 2 3.900 2.100-2.300 1.900 3.600q-6-2-12 0z" fill="#f2b632"/><circle cx="20" cy="9.300" r=".9" fill="#c8402f"/>' +
+      '<g fill="none" stroke="#f2b632" stroke-width="1"><circle cx="16.700" cy="17.600" r="2.700"/><circle cx="23.300" cy="17.600" r="2.700"/><path d="M19.400 17.600h1.200"/></g>' +
+      '<circle cx="12.300" cy="20.500" r="1.400" fill="#f2b632"/><circle cx="27.700" cy="20.500" r="1.400" fill="#f2b632"/><path d="M12 32l8 5 8-5" stroke="#f2b632" stroke-width="1.300" fill="none" stroke-linejoin="round"/>',
     bunglasses: '<circle cx="20" cy="7" r="4" fill="#6b3a22"/><path d="' + HAIR + '" fill="#6b3a22"/><g fill="none" stroke="#f1f1f1" stroke-width="1"><circle cx="16.700" cy="17.600" r="2.700"/><circle cx="23.300" cy="17.600" r="2.700"/><path d="M19.400 17.600h1.200"/></g>'
   };
   function drawAvatar(spec, bg, uid) {
     return '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="' + bg + '"/>' +
       '<clipPath id="cp' + uid + '"><circle cx="20" cy="20" r="20"/></clipPath><g clip-path="url(#cp' + uid + ')">' +
-      '<ellipse cx="20" cy="41" rx="14" ry="11" fill="' + spec.shirt + '"/>' +
-      '<circle cx="20" cy="17" r="8" fill="' + spec.skin + '"/>' + LOOKS[spec.look] + '</g></svg>';
+      (spec.big ? '<ellipse cx="20" cy="41" rx="17.500" ry="12.500" fill="' + spec.shirt + '"/><ellipse cx="20" cy="17.600" rx="9.400" ry="8.600" fill="' + spec.skin + '"/>' +
+        '<path d="M16.200 25.300q3.800 1.700 7.600 0" stroke="rgba(0,0,0,.22)" stroke-width="1" fill="none" stroke-linecap="round"/>'
+        : '<ellipse cx="20" cy="41" rx="14" ry="11" fill="' + spec.shirt + '"/><circle cx="20" cy="17" r="8" fill="' + spec.skin + '"/>') +
+      LOOKS[spec.look] + '</g></svg>';
   }
   function avatar(p) {
     return drawAvatar(p === 0 ? P.av : BOTS[G.seats[p]], p % 2 === 0 ? 'var(--us)' : 'var(--them)', 's' + p);
@@ -1784,7 +1808,7 @@ if (typeof module !== 'undefined') module.exports = E;
       Object.keys(BOT_REQ).filter(function (id) { return botOpen(id) && openBefore.indexOf(id) < 0; }).forEach(function (id) {
         lines.push('Vecino nuevo: ' + BOTS[id].name + ' ya juega en el nivel ' + lvOf(BOTS[id].level).name + '.');
       });
-      if (!wasOpen && legendsOpen()) lines.push('Se abrió el nivel Leyendas: Dark Pepe, Evil Amed y Tía Matu te esperan.');
+      if (!wasOpen && legendsOpen()) lines.push('Se abrió el nivel Leyendas: Doña Micaela, Mr. Pepe y otras cinco leyendas te esperan.');
       else if (!legendsOpen()) lines.push('Llevas ' + beatenCount() + ' de 7 bots vencidos para abrir Leyendas.');
       if (G.scores[1] === 0) { P.coins += 50; lines.push('50 monedas extra por zapatero.'); P.zap++; }
       P.mw[P.mesa || 'domingo'] = true;
